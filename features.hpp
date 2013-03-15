@@ -26,6 +26,7 @@
 #include <functional>
 #include <map>
 #include <unordered_map>
+#include <tuple>
 
 //
 // Ideja:
@@ -61,7 +62,6 @@ typedef int_fast16_t int16;
 typedef int_fast32_t int32;
 
 
-// typedef struct Feature {
 class Feature
 {
 public:
@@ -102,287 +102,78 @@ public:
 	// Tātad: TSNL - 2 + 4 + 8 + 16 biti
 	// Svarīgākais ir enkodēšana, dekodēšana ir otrajā plānā jeb vispār nevajadzīga.
 	//
-	// 4 LL
-	// 5 LLT
-	// 6 LLL
-	// 7 LLLT
-	// 8 LLLL
-	// 9 LLLLT
-	//
-	// 2 NN
-	// 3 NNT
-	// 3 NNN
-	// 4 NNNT
-	// 4 NNNN
-	// 5 NNNNT
-	//
-	// 7 NLLL
-	// 8 NLLLT
-	// 6 NNLL
-	// 7 NNLLT
-	// 10 NNLLLL
-	// 11 NNLLLLT
-	//
-	//
-	//
-	//
-	// 1 2 NN
-	// 1 3 NNT
-	// 2 3 NNN
-	// 1 4 LL
-	// 2 4 NNNT
-	// 3 4 NNNN
-	// 1 5 LLT
-	// 2 5 NNNNT
-	// 1 6 LLL
-	// 2 6 NNLL
-	// 1 7 LLLT
-	// 2 7 NLLL
-	// 3 7 NNLLT
-	// 1 8 NLLLT
-	// 2 8 LLLL
-	// 1 9 LLLLT
-	// 1 10 NNLLLL
-	// 1 11 NNLLLLT
-	//
 
-	typedef enum {
-		TTSNL = (0 << 5) + 4,
+#define TYPE(id, size, name) \
+	typedef struct _##name { \
+		const static byte value = (id << 5) + size; \
+	} name;
 
-		// NN = (1 << 5) + 2,
-		// NNT = (1 << 5) + 3,
-		// NNN = (2 << 5) + 3,
-		// LL = (1 << 5) + 4,
-		// NNNT = (2 << 5) + 4,
-		// NNNN = (3 << 5) + 4,
-		// LLT = (1 << 5) + 5,
-		// NNNNT = (2 << 5) + 5,
-		// LLL = (1 << 5) + 6,
-		// NNLL = (2 << 5) + 6,
-		// LLLT = (1 << 5) + 7,
-		// NLLL = (2 << 5) + 7,
-		// NNLLT = (3 << 5) + 7,
-		// NLLLT = (1 << 5) + 8,
-		// LLLL = (2 << 5) + 8,
-		// LLLLT = (1 << 5) + 9,
-		// NNLLLL = (1 << 5) + 10,
-		// NNLLLLT = (1 << 5) + 11,
+	TYPE(1, 2,	NN);
 
-		// TNN = (3 << 5) + 3,
-		// TNNT = (4 << 5) + 4,
-		// TNNN = (5 << 5) + 4,
-		// TLL = (3 << 5) + 5,
-		// TNNNT = (4 << 5) + 5,
-		// TNNNN = (5 << 5) + 5,
-		// TLLT = (3 << 5) + 6,
-		// TNNNNT = (4 << 5) + 6,
-		// TLLL = (4 << 5) + 7,
-		// TNNLL = (5 << 5) + 7,
-		// TLLLT = (3 << 5) + 8,
-		// TNLLL = (4 << 5) + 8,
-		// TNNLLT = (5 << 5) + 8,
-		// TNLLLT = (2 << 5) + 9,
-		// TLLLL = (3 << 5) + 9,
-		// TLLLLT = (2 << 5) + 10,
-		// TNNLLLL = (2 << 5) + 11,
-		// TNNLLLLT = (1 << 5) + 12,
-		
-		// TNNLLL = (4 << 5) + 9,
-		// NNLLL = (6 << 5) + 8,
-		// TNNLLLT = (3 << 5) + 10,
-		// NNLLLT = (5 << 5) + 9,
+	TYPE(1, 3, 	NNT);
+	TYPE(2, 3, 	NNN);
+	TYPE(3, 3,	TNN);
 
-		Undefined = 0
-	} Type;
+	TYPE(1, 4, 	LL);
+	TYPE(2, 4, 	NNNT);
+	TYPE(3, 4, 	NNNN);
+	TYPE(4, 4,	TNNT);
+	TYPE(5, 4,	TNNN);
 
+	TYPE(1, 5, 	LLT);
+	TYPE(2, 5, 	NNNNT);
+	TYPE(3, 5,	TLL);
+	TYPE(4, 5,	TNNNT);
+	TYPE(5, 5,	TNNNN);
 
-	typedef struct _NN {
-		const static byte value = (1 << 5) + 2;
-	} NN;
+	TYPE(1, 6, 	LLL);
+	TYPE(2, 6, 	NNLL);
+	TYPE(3, 6,	TLLT);
+	TYPE(4, 6,	TNNNNT);
 
-	typedef struct _NNT {
-		const static byte value = (1 << 5) + 3;
-	} NNT;
+	TYPE(1, 7, 	LLLT);
+	TYPE(2, 7, 	NLLL);
+	TYPE(3, 7, 	NNLLT);
+	TYPE(4, 7,	TLLL);
+	TYPE(5, 7,	TNNLL);
 
-	typedef struct _NNN {
-		const static byte value = (2 << 5) + 3;
-	} NNN; 
-	
-	typedef struct _LL {
-		const static byte value = (1 << 5) + 4;
-	} LL;
-	
-	typedef struct _NNNT {
-		const static byte value = (2 << 5) + 4;
-	} NNNT;
-	
-	typedef struct _NNNN {
-		const static byte value = (3 << 5) + 4;
-	} NNNN;
-	
-	typedef struct _LLT {
-		const static byte value = (1 << 5) + 5;
-	} LLT;
-	
-	typedef struct _NNNNT {
-		const static byte value = (2 << 5) + 5;
-	} NNNNT;
-	
-	typedef struct _LLL {
-		const static byte value = (1 << 5) + 6;
-	} LLL;
-	
-	typedef struct _NNLL {
-		const static byte value = (2 << 5) + 6;
-	} NNLL;
-	
-	typedef struct _LLLT {
-		const static byte value = (1 << 5) + 7;
-	} LLLT;
-	
-	typedef struct _NLLL {
-		const static byte value = (2 << 5) + 7;
-	} NLLL;
-	
-	typedef struct _NNLLT {
-		const static byte value = (3 << 5) + 7;
-	} NNLLT;
-	
-	typedef struct _NLLLT {
-		const static byte value = (1 << 5) + 8;
-	} NLLLT;
-	
-	typedef struct _LLLL {
-		const static byte value = (2 << 5) + 8;
-	} LLLL;
-	
-	typedef struct _LLLLT {
-		const static byte value = (1 << 5) + 9;
-	} LLLLT;
-	
-	typedef struct _NNLLLL {
-		const static byte value = (1 << 5) + 10;
-	} NNLLLL;
-	
-	typedef struct _NNLLLLT {
-		const static byte value = (1 << 5) + 11;
-	} NNLLLLT;
+	TYPE(1, 8, 	NLLLT);
+	TYPE(2, 8, 	LLLL);
+	TYPE(3, 8,	TLLLT);
+	TYPE(4, 8,	TNLLL);
+	TYPE(5, 8,	TNNLLT);
+	TYPE(6, 8,	NNLLL);
 
-	// jaunāki
+	TYPE(1, 9, 	LLLLT);
+	TYPE(2, 9,	TNLLLT);
+	TYPE(3, 9,	TLLLL);
+	TYPE(4, 9,	TNNLLL);
+	TYPE(5, 9,	NNLLLT);
 	
-	typedef struct _TNN {
-		const static byte value = (3 << 5) + 3;
-	} TNN;
-	
-	typedef struct _TNNT {
-		const static byte value = (4 << 5) + 4;
-	} TNNT;
-	
-	typedef struct _TNNN {
-		const static byte value = (5 << 5) + 4;
-	} TNNN;
-	
-	typedef struct _TLL {
-		const static byte value = (3 << 5) + 5;
-	} TLL;
-	
-	typedef struct _TNNNT {
-		const static byte value = (4 << 5) + 5;
-	} TNNNT;
-	
-	typedef struct _TNNNN {
-		const static byte value = (5 << 5) + 5;
-	} TNNNN;
-	
-	typedef struct _TLLT {
-		const static byte value = (3 << 5) + 6;
-	} TLLT;
-	
-	typedef struct _TNNNNT {
-		const static byte value = (4 << 5) + 6;
-	} TNNNNT;
-	
-	typedef struct _TLLL {
-		const static byte value = (4 << 5) + 7;
-	} TLLL;
-	
-	typedef struct _TNNLL {
-		const static byte value = (5 << 5) + 7;
-	} TNNLL;
-	
-	typedef struct _TLLLT {
-		const static byte value = (3 << 5) + 8;
-	} TLLLT;
-	
-	typedef struct _TNLLL {
-		const static byte value = (4 << 5) + 8;
-	} TNLLL;
+	TYPE(1, 10,	NNLLLL);
+	TYPE(2, 10,	TLLLLT);
+	TYPE(3, 10,	TNNLLLT);
 
-	// TODO: vajag ietērpt makrosā (x << 5) + y
+	TYPE(1, 11,	NNLLLLT);
+	TYPE(2, 11,	TNNLLLL);
 
-		// TNNLLL = (4 << 5) + 9,
-		// NNLLL = (6 << 5) + 8,
-	typedef struct _TNNLLL {
-		const static byte value = (4 << 5) + 9;
-	} TNNLLL;
+	TYPE(1, 12,	TNNLLLLT);
 
-	typedef struct _NNLLL {
-		const static byte value = (6 << 5) + 8;
-	} NNLLL;
+	// viens no veidiem kā realizēt pozīcijas aprēķināšanu ir:
+	// dalīt pa diviem bitiem, uzskatīt, ka T = 2, S = 2*2, N = 4*2, L = 8*2 ...
+	
+	// void f(TNN, T t, N n1, N n2)
+	// {
+	// 	data[0] = NN::value;
+	// 	data[1] = t & 0x3;
+	// 	data[2] = n1;
+	// 	data[3] = n2;
+	// }
 
-	typedef struct _TNNLLLT {
-		const static byte value = (3 << 5) + 10;
-	} TNNLLLT;
+	// void t()
+	// {
 
-	typedef struct _NNLLLT {
-		const static byte value = (5 << 5) + 9;
-	} NNLLLT;
-		// TNNLLLT = (3 << 5) + 10,
-		// NNLLLT = (5 << 5) + 9,
-	
-	typedef struct _TNNLLT {
-		const static byte value = (5 << 5) + 8;
-	} TNNLLT;
-	
-	typedef struct _TNLLLT {
-		const static byte value = (2 << 5) + 9;
-	} TNLLLT;
-	
-	typedef struct _TLLLL {
-		const static byte value = (3 << 5) + 9;
-	} TLLLL;
-	
-	typedef struct _TLLLLT {
-		const static byte value = (2 << 5) + 10;
-	} TLLLLT;
-	
-	typedef struct _TNNLLLL {
-		const static byte value = (2 << 5) + 11;
-	} TNNLLLL;
-	
-	typedef struct _TNNLLLLT {
-		const static byte value = (1 << 5) + 12;
-	} TNNLLLLT;
-
-		// TNN = (3 << 5) + 3,
-		// TNNT = (4 << 5) + 4,
-		// TNNN = (5 << 5) + 4,
-		// TLL = (3 << 5) + 5,
-		// TNNNT = (4 << 5) + 5,
-		// TNNNN = (5 << 5) + 5,
-		// TLLT = (3 << 5) + 6,
-		// TNNNNT = (4 << 5) + 6,
-		// TLLL = (4 << 5) + 7,
-		// TNNLL = (5 << 5) + 7,
-		// TLLLT = (3 << 5) + 8,
-		// TNLLL = (4 << 5) + 8,
-		// TNNLLT = (5 << 5) + 8,
-		// TNLLLT = (2 << 5) + 9,
-		// TLLLL = (3 << 5) + 9,
-		// TLLLLT = (2 << 5) + 10,
-		// TNNLLLL = (2 << 5) + 11,
-		// TNNLLLLT = (1 << 5) + 12,
-		
+	// }
 
 
 	template <typename... Arguments>
@@ -494,47 +285,6 @@ public:
 	}
 
 
-	/*
-	template <typename... Arguments>
-	Feature(Type type, Arguments... arguments)
-	{
-		data[0] = type;
-
-		if(type == TTSNL)
-		{
-			setTTSNL(arguments...);
-		}
-
-		else if(type == NN) setNN(arguments...);
-		else if(type == NNT) setNNT(arguments...);
-
-		else if(type == NNN) setNNN(arguments...);
-		else if(type == LL) setLL(arguments...);
-		else if(type == NNNT) setNNNT(arguments...);
-		else if(type == NNNN) setNNNN(arguments...);
-		else if(type == LLT) setLLT(arguments...);
-		else if(type == NNNNT) setNNNNT(arguments...);
-		else if(type == LLL) setLLL(arguments...);
-		else if(type == NNLL) setNNLL(arguments...);
-		else if(type == LLLT) setLLLT(arguments...);
-		else if(type == NLLL) setNLLL(arguments...);
-		else if(type == NNLLT) setNNLLT(arguments...);
-		else if(type == NLLLT) setNLLLT(arguments...);
-		else if(type == LLLL) setLLLL(arguments...);
-		else if(type == LLLLT) setLLLLT(arguments...);
-		else if(type == NNLLLL) setNNLLLL(arguments...);
-		else if(type == NNLLLLT) setNNLLLLT(arguments...);
-	}
-	*/
-	
-	// void setTTSNL(int8 tiny1, int8 tiny2, int8 small, int8 normal, int16 large)
-	// {
-	// 	data[0] = TTSNL::value;
-	// 	// vislabāk ir saspiest kopā pirmos trīs elementus vienā
-	// 	data[1] = ((tiny1 & 0x3) << 6) + ((tiny2 & 0x3) << 4) + (small & 0xF);
-	// 	data[2] = normal;
-	// 	*((int16_t*)&data[3]) = large;
-	// }
 
 	void setNN(N n1, N n2)
 	{
@@ -700,6 +450,8 @@ public:
 
 
 	/// --------------------------
+	//
+	// TODO: vai nevar veikt ar template metaprogramming
 
 	Feature(TNN, T t, N n1, N n2)
 	{
@@ -927,7 +679,6 @@ public:
 	}
 
 };
-// } Feature;
 
 
 
