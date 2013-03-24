@@ -37,6 +37,11 @@ void outputDuration(double duration)
 		else
 			cout << setprecision(1);
 		cout << " = " << duration/60.0 << " min";
+		if(duration > 3600)
+		{
+			cout << setprecision(2);
+			cout << " = " << duration/3600.0 << " h";
+		}
 	}
 }
 
