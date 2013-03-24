@@ -179,32 +179,34 @@ void getFeatures(vector<Feature>& features, const Token* gtoken, const Token* ht
 #endif
 	
 	// formā...
-	//features.emplace_back(Feature::LL(), 2, 3);
+	//features.emplace_back(byte/word/dword elements...);
 
-#define f(f,...) features.emplace_back(Feature::f(), __VA_ARGS__);
+#define f(...) features.emplace_back(__VA_ARGS__);
 
 	const int g = gtoken ? gtoken->index() : -1;
 	const int h = htoken->index();
 	const int m = mtoken->index();
 
-	const Feature::L gftag = gtoken ? gtoken->fullTagID() : -1;
-	const Feature::L gtag = gtoken ? gtoken->tagID() : -2;
-	const Feature::N gptag = gtoken ? gtoken->tag()[0] : -1;
-	const Feature::L hftag = htoken->fullTagID();
-	const Feature::L htag = htoken->tagID();
-	const Feature::N hptag = htoken->tag()[0];
-	const Feature::L mftag = mtoken->fullTagID();
-	const Feature::L mtag = mtoken->tagID();
-	const Feature::N mptag = mtoken->tag()[0];
+	const Feature::word gftag = gtoken ? gtoken->fullTagID() : -1;
+	const Feature::word gtag = gtoken ? gtoken->tagID() : -2;
+	const Feature::byte gptag = gtoken ? gtoken->tag()[0] : -1;
+	const Feature::word hftag = htoken->fullTagID();
+	const Feature::word htag = htoken->tagID();
+	const Feature::byte hptag = htoken->tag()[0];
+	const Feature::word mftag = mtoken->fullTagID();
+	const Feature::word mtag = mtoken->tagID();
+	const Feature::byte mptag = mtoken->tag()[0];
 
-	const Feature::L gword = gtoken ? gtoken->wordID() : -3;
-	const Feature::L hword = htoken->wordID();
-	const Feature::L mword = mtoken->wordID();
+	const Feature::word gword = gtoken ? gtoken->wordID() : -3;
+	const Feature::word hword = htoken->wordID();
+	const Feature::word mword = mtoken->wordID();
 
-	const Feature::T hm = h < m ? 0 : 1;
-	const Feature::T ghm = (g < h ? 0 : 2) + (h < m ? 0 : 1);
+	const Feature::byte hm = h < m ? 0 : 1;
+	const Feature::byte ghm = (g < h ? 0 : 2) + (h < m ? 0 : 1);
+	
+	const Feature::byte zero = 0;
 
-	Feature::S hmdist = 0;
+	Feature::byte hmdist = 0;
 	{
 		int d = h-m;
 		if(d < 0) d = -d;
@@ -218,7 +220,7 @@ void getFeatures(vector<Feature>& features, const Token* gtoken, const Token* ht
 		if(d > 40) hmdist++;
 	}
 
-	Feature::S ghdist = 0;
+	Feature::byte ghdist = 0;
 	{
 		int d = g-h;
 		if(d < 0) d = -d;
@@ -255,108 +257,54 @@ void getFeatures(vector<Feature>& features, const Token* gtoken, const Token* ht
 	// [dgen], tagP, tagP, tagP, [ghm]
 	// [dgen], tag, tag, tag, [ghm]
 	//
-	// NN
-	// NNT
-	// LL
-	// LLT
-	// LLLL
-	// LLLLT
-	//
-	// NNNN
-	// NNNNT
-	// NNLL
-	// NNLLT
-	// NNLLLL
-	// NNLLLLT
-	//
-	// LLL
-	// LLLT
-	// NNN
-	// NNNT
-	// LLL
-	// LLLT
-	//
-	// NLLL
-	// NLLLT
-	// NNNN
-	// NNNNT
-	// NLLL
-	// NLLLT
-	//
 	// NOTE: word, tag, fullTag savā starpā nekonfliktē, jo tie ir zem viena indeksa
 	// izņemot gadījumus, kad kāds no tagiem sakrīt ar vārdu, bet lai būtu reāls konflikts, arī citām sakritībām jānotiek
+	//
+	// TODO: lai nekur nebūtu nejauša pārklāšanās, var pievienot pirmo elementu kā tipu,
+	// kurus iepriekš definē kā const Feature::byte TT, WTWT, ... (tag-tag, word-tag-word-tag, ...)
+	//
 
-	f(LL, hftag, mftag);
-	f(LL, htag, mtag);
-	f(NN, hptag, mptag);
-	f(LLT, hftag, mftag, hm);
-	f(LLT, htag, mtag, hm);
-	f(NNT, hptag, mptag, hm);
+	f(hftag, mftag);
+	f(htag, mtag);
+	f(hptag, mptag);
+	f(hftag, mftag, hm);
+	f(htag, mtag, hm);
+	f(hptag, mptag, hm);
 
-	f(NNLL, hmdist, 0, hftag, mftag);
-	f(NNLL, hmdist, 0, htag, mtag);
-	f(NNN, hmdist, hptag, mptag);
-	f(NNLLT, hmdist, 0, hftag, mftag, hm);
-	f(NNLLT, hmdist, 0, htag, mtag, hm);
-	f(NNNT, hmdist, hptag, mptag, hm);
-
-	// ar word
-	f(LLLL, hword, htag, mword, mtag);
-	f(LLL, htag, mword, mtag);
-	f(LLL, hword, htag, mtag);
-	f(LLLLT, hword, htag, mword, mtag, hm);
-	f(LLLT, htag, mword, mtag, hm);
-	f(LLLT, hword, htag, mtag, hm);
-
-	// ar word
-	f(NNLLLL, hmdist, 0, hword, htag, mword, mtag);
-	f(NLLL, hmdist, htag, mword, mtag);
-	f(NLLL, hmdist, hword, htag, mtag);
-	f(NNLLLLT, hmdist, 0, hword, htag, mword, mtag, hm);
-	f(NLLLT, hmdist, htag, mword, mtag, hm);
-	f(NLLLT, hmdist, hword, htag, mtag, hm);
-
-	// f(TLL, 0, hftag, mftag);
-	// f(TLL, 1, htag, mtag);
-	// f(NN, hptag, mptag);
-	// f(TLLT, 0, hftag, mftag, hm);
-	// f(TLLT, 1, htag, mtag, hm);
-	// f(NNT, hptag, mptag, hm);
-
-	// f(TNNLL, 0, hmdist, 0, hftag, mftag);
-	// f(TNNLL, 1, hmdist, 0, htag, mtag);
-	// f(NNN, hmdist, hptag, mptag);
-	// f(TNNLLT, 0, hmdist, 0, hftag, mftag, hm);
-	// f(TNNLLT, 1, hmdist, 0, htag, mtag, hm);
-	// f(NNNT, hmdist, hptag, mptag, hm);
-
-	// // ar word
-	// f(LLLL, hword, htag, mword, mtag);
-	// f(TLLL, 1, htag, mword, mtag);
-	// f(TLLL, 2, hword, htag, mtag);
-	// f(LLLLT, hword, htag, mword, mtag, hm);
-	// f(TLLLT, 1, htag, mword, mtag, hm);
-	// f(TLLLT, 2, hword, htag, mtag, hm);
-
-	// // ar word
-	// f(NNLLLL, hmdist, 0, hword, htag, mword, mtag);
-	// f(TNLLL, 1, hmdist, htag, mword, mtag);
-	// f(TNLLL, 2, hmdist, hword, htag, mtag);
-	// f(NNLLLLT, hmdist, 0, hword, htag, mword, mtag, hm);
-	// f(TNLLLT, 1, hmdist, htag, mword, mtag, hm);
-	// f(TNLLLT, 2, hmdist, hword, htag, mtag, hm);
+	f(hmdist, zero, hftag, mftag);
+	f(hmdist, zero, htag, mtag);
+	f(hmdist, zero, hptag, mptag);
+	f(hmdist, zero, hftag, mftag, hm);
+	f(hmdist, zero, htag, mtag, hm);
+	f(hmdist, zero, hptag, mptag, hm);
 	
+	// ar word
+	f(hword, htag, mword, mtag);
+	f(htag, mword, mtag);
+	f(hword, htag, mtag);
+	f(hword, htag, mword, mtag, hm);
+	f(htag, mword, mtag, hm);
+	f(hword, htag, mtag, hm);
+	
+	// ar word
+	f(hmdist, zero, hword, htag, mword, mtag);
+	f(hmdist, zero, htag, mword, mtag);
+	f(hmdist, zero, hword, htag, mtag);
+	f(hmdist, zero, hword, htag, mword, mtag, hm);
+	f(hmdist, zero, htag, mword, mtag, hm);
+	f(hmdist, zero, hword, htag, mtag, hm);
+
 	// 2.k. dep.
 	// [dgen], fulltag, fulltag, fulltag, [ghm]
 	// [dgen], tagP, tagP, tagP, [ghm]
 	// [dgen], tag, tag, tag, [ghm]
 	
-	f(LLL, gftag, hftag, mftag);
-	f(NNN, gptag, hptag, mptag);
-	f(LLL, gtag, htag, mtag);
-	f(LLLT, gftag, hftag, mftag, ghm);
-	f(NNNT, gptag, hptag, mptag, ghm);
-	f(LLLT, gtag, htag, mtag, ghm);
+	f(gftag, hftag, mftag);
+	f(gptag, hptag, mptag);
+	f(gtag, htag, mtag);
+	f(gftag, hftag, mftag, ghm);
+	f(gptag, hptag, mptag, ghm);
+	f(gtag, htag, mtag, ghm);
 
 
 	// te var redzēt kā pareizā secībā izsaukt deģenerēto gadījumu funkcijas
@@ -381,24 +329,26 @@ void getFeaturesDegenICS(vector<Feature>& features, const Token* gtoken, const T
 	const int h = htoken->index();
 	const int m = mtoken->index();
 
-	const Feature::L gftag = gtoken ? gtoken->fullTagID() : -1;
-	const Feature::L gtag = gtoken ? gtoken->tagID() : -2;
-	const Feature::N gptag = gtoken ? gtoken->tag()[0] : -1;
-	const Feature::L hftag = htoken->fullTagID();
-	const Feature::L htag = htoken->tagID();
-	const Feature::N hptag = htoken->tag()[0];
-	const Feature::L mftag = mtoken->fullTagID();
-	const Feature::L mtag = mtoken->tagID();
-	const Feature::N mptag = mtoken->tag()[0];
+	const Feature::word gftag = gtoken ? gtoken->fullTagID() : -1;
+	const Feature::word gtag = gtoken ? gtoken->tagID() : -2;
+	const Feature::byte gptag = gtoken ? gtoken->tag()[0] : -1;
+	const Feature::word hftag = htoken->fullTagID();
+	const Feature::word htag = htoken->tagID();
+	const Feature::byte hptag = htoken->tag()[0];
+	const Feature::word mftag = mtoken->fullTagID();
+	const Feature::word mtag = mtoken->tagID();
+	const Feature::byte mptag = mtoken->tag()[0];
 
-	const Feature::L gword = gtoken ? gtoken->wordID() : -3;
-	const Feature::L hword = htoken->wordID();
-	const Feature::L mword = mtoken->wordID();
+	const Feature::word gword = gtoken ? gtoken->wordID() : -3;
+	const Feature::word hword = htoken->wordID();
+	const Feature::word mword = mtoken->wordID();
 
-	const Feature::T hm = h < m ? 0 : 1;
-	const Feature::T ghm = (g < h ? 0 : 2) + (h < m ? 0 : 1);
+	const Feature::byte hm = h < m ? 0 : 1;
+	const Feature::byte ghm = (g < h ? 0 : 2) + (h < m ? 0 : 1);
 
-	Feature::S hmdist = 0;
+	const Feature::byte zero = 0;
+
+	Feature::byte hmdist = 0;
 	{
 		int d = h-m;
 		if(d < 0) d = -d;
@@ -412,7 +362,7 @@ void getFeaturesDegenICS(vector<Feature>& features, const Token* gtoken, const T
 		if(d > 40) hmdist++;
 	}
 
-	Feature::S ghdist = 0;
+	Feature::byte ghdist = 0;
 	{
 		int d = g-h;
 		if(d < 0) d = -d;
@@ -428,7 +378,7 @@ void getFeaturesDegenICS(vector<Feature>& features, const Token* gtoken, const T
 
 	// dh, dim
 	// katram deģenerētajam savs bits
-	const Feature::N dgen = (dh ? 4 : 0) + (dim ? 2 : 0);
+	const Feature::byte dgen = (dh ? 4 : 0) + (dim ? 2 : 0);
 
 	// dgen pietiek ar S - small (4 bitiem !!!)
 	
@@ -438,46 +388,46 @@ void getFeaturesDegenICS(vector<Feature>& features, const Token* gtoken, const T
 	// [-|ghdist|hmdist], [-|degen], tag, tag, [hm]
 	// [-|hmdist], [word], tag, [word], tag, [hm]
 	
-	f(NNLL, 0, dgen, hftag, mftag);
-	f(NNLL, 0, dgen, htag, mtag);
-	f(NNNN, 0, dgen, hptag, mptag);
-	f(NNLLT, 0, dgen, hftag, mftag, hm);
-	f(NNLLT, 0, dgen, htag, mtag, hm);
-	f(NNNNT, 0, dgen, hptag, mptag, hm);
+	f(zero, dgen, hftag, mftag);
+	f(zero, dgen, htag, mtag);
+	f(zero, dgen, hptag, mptag);
+	f(zero, dgen, hftag, mftag, hm);
+	f(zero, dgen, htag, mtag, hm);
+	f(zero, dgen, hptag, mptag, hm);
 
-	f(NNLL, hmdist, dgen, hftag, mftag);
-	f(NNLL, hmdist, dgen, htag, mtag);
-	f(NNNN, hmdist, dgen, hptag, mptag);
-	f(NNLLT, hmdist, dgen, hftag, mftag, hm);
-	f(NNLLT, hmdist, dgen, htag, mtag, hm);
-	f(NNNNT, hmdist, dgen, hptag, mptag, hm);
-
-	// ar word
-	f(NNLLLL, 0, dgen, hword, htag, mword, mtag);
-	f(NNLLL, 0, dgen, htag, mword, mtag);
-	f(NNLLL, 0, dgen, hword, htag, mtag);
-	f(NNLLLLT, 0, dgen, hword, htag, mword, mtag, hm);
-	f(NNLLLT, 0, dgen, htag, mword, mtag, hm);
-	f(NNLLLT, 0, dgen, hword, htag, mtag, hm);
+	f(hmdist, dgen, hftag, mftag);
+	f(hmdist, dgen, htag, mtag);
+	f(hmdist, dgen, hptag, mptag);
+	f(hmdist, dgen, hftag, mftag, hm);
+	f(hmdist, dgen, htag, mtag, hm);
+	f(hmdist, dgen, hptag, mptag, hm);
 
 	// ar word
-	f(NNLLLL, hmdist, dgen, hword, htag, mword, mtag);
-	f(NNLLL, hmdist, dgen, htag, mword, mtag);
-	f(NNLLL, hmdist, dgen, hword, htag, mtag);
-	f(NNLLLLT, hmdist, dgen, hword, htag, mword, mtag, hm);
-	f(NNLLLT, hmdist, dgen, htag, mword, mtag, hm);
-	f(NNLLLT, hmdist, dgen, hword, htag, mtag, hm);
+	f(zero, dgen, hword, htag, mword, mtag);
+	f(zero, dgen, htag, mword, mtag);
+	f(zero, dgen, hword, htag, mtag);
+	f(zero, dgen, hword, htag, mword, mtag, hm);
+	f(zero, dgen, htag, mword, mtag, hm);
+	f(zero, dgen, hword, htag, mtag, hm);
+
+	// ar word
+	f(hmdist, dgen, hword, htag, mword, mtag);
+	f(hmdist, dgen, htag, mword, mtag);
+	f(hmdist, dgen, hword, htag, mtag);
+	f(hmdist, dgen, hword, htag, mword, mtag, hm);
+	f(hmdist, dgen, htag, mword, mtag, hm);
+	f(hmdist, dgen, hword, htag, mtag, hm);
 	
 	// 2.k. dep.
 	// [dgen], fulltag, fulltag, fulltag, [ghm]
 	// [dgen], tagP, tagP, tagP, [ghm]
 	// [dgen], tag, tag, tag, [ghm]
-	f(NLLL, dgen, gftag, hftag, mftag);
-	f(NNNN, dgen, gptag, hptag, mptag);
-	f(NLLL, dgen, gtag, htag, mtag);
-	f(NLLLT, dgen, gftag, hftag, mftag, ghm);
-	f(NNNNT, dgen, gptag, hptag, mptag, ghm);
-	f(NLLLT, dgen, gtag, htag, mtag, ghm);
+	f(dgen, gftag, hftag, mftag);
+	f(dgen, gptag, hptag, mptag);
+	f(dgen, gtag, htag, mtag);
+	f(dgen, gftag, hftag, mftag, ghm);
+	f(dgen, gptag, hptag, mptag, ghm);
+	f(dgen, gtag, htag, mtag, ghm);
 }
 
 // degenouterm = true tiek pieņemts automātiski
@@ -495,24 +445,26 @@ void getFeaturesDegenCS(vector<Feature>& features, const Token* gtoken, const To
 	const int h = htoken->index();
 	const int m = mtoken->index();
 
-	const Feature::L gftag = gtoken ? gtoken->fullTagID() : -1;
-	const Feature::L gtag = gtoken ? gtoken->tagID() : -2;
-	const Feature::N gptag = gtoken ? gtoken->tag()[0] : -1;
-	const Feature::L hftag = htoken->fullTagID();
-	const Feature::L htag = htoken->tagID();
-	const Feature::N hptag = htoken->tag()[0];
-	const Feature::L mftag = mtoken->fullTagID();
-	const Feature::L mtag = mtoken->tagID();
-	const Feature::N mptag = mtoken->tag()[0];
+	const Feature::word gftag = gtoken ? gtoken->fullTagID() : -1;
+	const Feature::word gtag = gtoken ? gtoken->tagID() : -2;
+	const Feature::byte gptag = gtoken ? gtoken->tag()[0] : -1;
+	const Feature::word hftag = htoken->fullTagID();
+	const Feature::word htag = htoken->tagID();
+	const Feature::byte hptag = htoken->tag()[0];
+	const Feature::word mftag = mtoken->fullTagID();
+	const Feature::word mtag = mtoken->tagID();
+	const Feature::byte mptag = mtoken->tag()[0];
 
-	const Feature::L gword = gtoken ? gtoken->wordID() : -3;
-	const Feature::L hword = htoken->wordID();
-	const Feature::L mword = mtoken->wordID();
+	const Feature::word gword = gtoken ? gtoken->wordID() : -3;
+	const Feature::word hword = htoken->wordID();
+	const Feature::word mword = mtoken->wordID();
 
-	const Feature::T hm = h < m ? 0 : 1;
-	const Feature::T ghm = (g < h ? 0 : 2) + (h < m ? 0 : 1);
+	const Feature::byte hm = h < m ? 0 : 1;
+	const Feature::byte ghm = (g < h ? 0 : 2) + (h < m ? 0 : 1);
 
-	Feature::S hmdist = 0;
+	const Feature::byte zero = 0;
+
+	Feature::byte hmdist = 0;
 	{
 		int d = h-m;
 		if(d < 0) d = -d;
@@ -526,7 +478,7 @@ void getFeaturesDegenCS(vector<Feature>& features, const Token* gtoken, const To
 		if(d > 40) hmdist++;
 	}
 
-	Feature::S ghdist = 0;
+	Feature::byte ghdist = 0;
 	{
 		int d = g-h;
 		if(d < 0) d = -d;
@@ -540,7 +492,7 @@ void getFeaturesDegenCS(vector<Feature>& features, const Token* gtoken, const To
 		if(d > 40) ghdist++;
 	}
 
-	const Feature::N dgen = (dh ? 4 : 0) + (dim ? 2 : 0) + 1;
+	const Feature::byte dgen = (dh ? 4 : 0) + (dim ? 2 : 0) + 1;
 
 	// bool dom = true;
 
@@ -557,46 +509,46 @@ void getFeaturesDegenCS(vector<Feature>& features, const Token* gtoken, const To
 	// [-|ghdist|hmdist], [-|degen], tag, tag, [hm]
 	// [-|hmdist], [word], tag, [word], tag, [hm]
 	
-	f(NNLL, 0, dgen, hftag, mftag);
-	f(NNLL, 0, dgen, htag, mtag);
-	f(NNNN, 0, dgen, hptag, mptag);
-	f(NNLLT, 0, dgen, hftag, mftag, hm);
-	f(NNLLT, 0, dgen, htag, mtag, hm);
-	f(NNNNT, 0, dgen, hptag, mptag, hm);
+	f(zero, dgen, hftag, mftag);
+	f(zero, dgen, htag, mtag);
+	f(zero, dgen, hptag, mptag);
+	f(zero, dgen, hftag, mftag, hm);
+	f(zero, dgen, htag, mtag, hm);
+	f(zero, dgen, hptag, mptag, hm);
 
-	f(NNLL, hmdist, dgen, hftag, mftag);
-	f(NNLL, hmdist, dgen, htag, mtag);
-	f(NNNN, hmdist, dgen, hptag, mptag);
-	f(NNLLT, hmdist, dgen, hftag, mftag, hm);
-	f(NNLLT, hmdist, dgen, htag, mtag, hm);
-	f(NNNNT, hmdist, dgen, hptag, mptag, hm);
-
-	// ar word
-	f(NNLLLL, 0, dgen, hword, htag, mword, mtag);
-	f(NNLLL, 0, dgen, htag, mword, mtag);
-	f(NNLLL, 0, dgen, hword, htag, mtag);
-	f(NNLLLLT, 0, dgen, hword, htag, mword, mtag, hm);
-	f(NNLLLT, 0, dgen, htag, mword, mtag, hm);
-	f(NNLLLT, 0, dgen, hword, htag, mtag, hm);
+	f(hmdist, dgen, hftag, mftag);
+	f(hmdist, dgen, htag, mtag);
+	f(hmdist, dgen, hptag, mptag);
+	f(hmdist, dgen, hftag, mftag, hm);
+	f(hmdist, dgen, htag, mtag, hm);
+	f(hmdist, dgen, hptag, mptag, hm);
 
 	// ar word
-	f(NNLLLL, hmdist, dgen, hword, htag, mword, mtag);
-	f(NNLLL, hmdist, dgen, htag, mword, mtag);
-	f(NNLLL, hmdist, dgen, hword, htag, mtag);
-	f(NNLLLLT, hmdist, dgen, hword, htag, mword, mtag, hm);
-	f(NNLLLT, hmdist, dgen, htag, mword, mtag, hm);
-	f(NNLLLT, hmdist, dgen, hword, htag, mtag, hm);
+	f(zero, dgen, hword, htag, mword, mtag);
+	f(zero, dgen, htag, mword, mtag);
+	f(zero, dgen, hword, htag, mtag);
+	f(zero, dgen, hword, htag, mword, mtag, hm);
+	f(zero, dgen, htag, mword, mtag, hm);
+	f(zero, dgen, hword, htag, mtag, hm);
+
+	// ar word
+	f(hmdist, dgen, hword, htag, mword, mtag);
+	f(hmdist, dgen, htag, mword, mtag);
+	f(hmdist, dgen, hword, htag, mtag);
+	f(hmdist, dgen, hword, htag, mword, mtag, hm);
+	f(hmdist, dgen, htag, mword, mtag, hm);
+	f(hmdist, dgen, hword, htag, mtag, hm);
 	
 	// 2.k. dep.
 	// [dgen], fulltag, fulltag, fulltag, [ghm]
 	// [dgen], tagP, tagP, tagP, [ghm]
 	// [dgen], tag, tag, tag, [ghm]
-	f(NLLL, dgen, gftag, hftag, mftag);
-	f(NNNN, dgen, gptag, hptag, mptag);
-	f(NLLL, dgen, gtag, htag, mtag);
-	f(NLLLT, dgen, gftag, hftag, mftag, ghm);
-	f(NNNNT, dgen, gptag, hptag, mptag, ghm);
-	f(NLLLT, dgen, gtag, htag, mtag, ghm);
+	f(dgen, gftag, hftag, mftag);
+	f(dgen, gptag, hptag, mptag);
+	f(dgen, gtag, htag, mtag);
+	f(dgen, gftag, hftag, mftag, ghm);
+	f(dgen, gptag, hptag, mptag, ghm);
+	f(dgen, gtag, htag, mtag, ghm);
 }
 
 FeatureVector::Value scoreDegenICS(const FeatureVector& features, vector<Feature>& localFeatures, const Span& cs, const Span& rcs)
@@ -1052,7 +1004,7 @@ bool Tokens::extractFeatures(FeatureVector& targetFeatureVector) const
 
 			getFeatures(localFeatures, gtoken, htoken, mtoken, dh, dim, dom);	// izsauks deģenerēto CS un ICS
 
-			for(Feature& feature : localFeatures)
+			for(const Feature& feature : localFeatures)
 				targetFeatureVector[feature] += 1;
 		}
 	}

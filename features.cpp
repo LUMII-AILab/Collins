@@ -28,22 +28,7 @@ void Feature::print() const
 {
 	print_raw();
 
-	// dekodēšana
-	// if(data[0] == TTSNL)
-	// {
-	// 	cout << "SIZE = " << size();
-	// 	cout << ", ";
-	// 	cout << "T1 = " << (unsigned int)((data[1] >> 6) & 0x3);
-	// 	cout << ", ";
-	// 	cout << "T2 = " << (unsigned int)((data[1] >> 4) & 0x3);
-	// 	cout << ", ";
-	// 	cout << "S = " << (unsigned int)(data[1] & 0xF);
-	// 	cout << ", ";
-	// 	cout << "N = " << (unsigned int)data[2];
-	// 	cout << ", ";
-	// 	cout << "L = " << (unsigned int)*((int16_t*)&data[3]);
-	// 	cout << endl;
-	// }
+	// NOTE: šeit bija domāta dekodēšana, kas vairs nav aktuāla/iespējama tekošajā variantā
 }
 
 void Feature::print_raw() const
@@ -72,6 +57,11 @@ void Feature::print_raw_full() const
 	// 	cout << setw(2) << (int)data[i] << " ";
 	cout << std::nouppercase << std::dec << std::setfill(' ');
 	cout << endl;
+}
+
+void Feature::overflow_assert() const
+{
+	cout << "Feature overflow!!!" << endl;
 }
 
 
