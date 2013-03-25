@@ -473,6 +473,7 @@ void TrainCase::run()
 	// featureVector.reserve(arguments.featureVectorSize);
 	cout << "ok" << endl;
 	cout << "Feature vector bucket count: " << featureVector.bucket_count() << endl;
+	cout << "Identificator map size: " << arguments.getIDMap().size() << endl;
 
 
 
@@ -511,6 +512,7 @@ void TrainCase::run()
 	cout << "Feature vector bucket count: " << featureVector.capacity() << endl;
 	cout << "Final feature vector size: " << featureVector.size() << endl;
 	cout << "Final feature vector collision count: " << featureVector.collisions() << endl;
+	cout << "Identificator map size: " << arguments.getIDMap().size() << endl;
 	cout << "Training time: ";
 	outputDuration(trainTime);
 	cout << endl;

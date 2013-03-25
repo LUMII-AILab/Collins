@@ -220,7 +220,7 @@ int main(int argc, char const* argv[])
 			cout << "---------------------------------------------------------------------" << endl;
 		cout << "Trainset: " << trainCoNLL[i] << ", " << checkCoNLL[i] << endl;
 		cout << endl;
-		trainCases(TrainCase::Arguments(defaultArguments).newIDMap().setTrainCoNLL(trainCoNLL[i]).setCheckCoNLL(checkCoNLL[i]));
+		trainCases(TrainCase::Arguments(defaultArguments).setTrainCoNLL(trainCoNLL[i]).setCheckCoNLL(checkCoNLL[i]));
 		cout << endl;
 	}
 

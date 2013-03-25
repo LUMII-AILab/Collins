@@ -75,9 +75,9 @@ public:
 	operator const T&() const { return *_value; }
 	operator T&() { return *_value; }
 	const T& value() const { return _value; }
-	T& value() { return _value; }
-	T& operator ()() { return _value; }
-	const T& operator ()() const { return _value; }
+	T& value() { return *_value; }
+	T& operator ()() { return *_value; }
+	const T& operator ()() const { return *_value; }
 	operator bool() const { return _value != NULL; }
 	bool valid() const { return _value != NULL; }
 	std::function<void ()> onChange;
@@ -136,6 +136,7 @@ public:
 
 			trainTrees = arguments.trainTrees;
 			checkTrees = arguments.checkTrees;
+			idMap = arguments.idMap;
 			_trainTrees = arguments._trainTrees;
 			_checkTrees = arguments._checkTrees;
 			_idMap = arguments._idMap;
@@ -156,7 +157,7 @@ public:
 		Arguments& setFeatureVecorSize(int value) { featureVectorSize = value; return *this; }
 		Arguments& setSeed(int value) { seed = value; return *this; }
 		Arguments& setPermutate(bool value) { permutate = value; return *this; }
-		Arguments& newIDMap() { _idMap.reset(new IndexMap()); return *this; }
+		Arguments& setIDMap(IndexMap& value) { idMap = value; return *this; }
 
 		ConfigValue<int> featureVectorSize;
 		ConfigValue<int> trainStart;
@@ -176,15 +177,33 @@ public:
 		ConfigValueByPtr<Trees> checkTrees;
 		ConfigValue<int> seed;
 		ConfigValue<bool> permutate;
+		ConfigValueByPtr<IndexMap> idMap;
+
+		IndexMap& getIDMap()
+		{
+			if(idMap.valid())
+				return idMap;
+			if(!_idMap.get())
+				_idMap.reset(new IndexMap());
+			return *_idMap.get();
+		}
 
 	private:
-
+		
 		void setupCallbacks()
 		{
 			limit.onChange = [this]() { trainLimit = limit; checkLimit = limit; };
 			allowNonProjective.onChange = [this]() { allowTrainNonProjective = allowNonProjective; allowCheckNonProjective = allowNonProjective; };
-			trainCoNLL.onChange = [this]() { _trainTrees.reset(new Trees()); trainTrees = *_trainTrees; readFile(*_idMap, trainTrees, trainCoNLL); };
-			checkCoNLL.onChange = [this]() { _checkTrees.reset(new Trees()); checkTrees = *_checkTrees; readFile(*_idMap, checkTrees, checkCoNLL); };
+			trainCoNLL.onChange = [this]() {
+				_trainTrees.reset(new Trees());
+				trainTrees = *_trainTrees;
+				readFile(getIDMap(), trainTrees, trainCoNLL);
+			};
+			checkCoNLL.onChange = [this]() {
+				_checkTrees.reset(new Trees());
+				checkTrees = *_checkTrees;
+				readFile(getIDMap(), checkTrees, checkCoNLL);
+			};
 		}
 
 		std::shared_ptr<Trees> _trainTrees;
@@ -232,8 +251,6 @@ private:
 	double checkTime;	
 
 	std::vector<CheckResult> checkResults;
-
-	IndexMap idMap;
 
 	friend class TrainCases;
 };
