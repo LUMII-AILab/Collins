@@ -97,11 +97,13 @@ void FeatureVector::zero()
 FeatureVector::Index FeatureVector::collisions() const
 {
 	Index collisions = 0;
+#if USE_MAP != STD_MAP
 	for(size_t i=0, bucket_count=_map.bucket_count(); i<bucket_count; ++i)
 	{
 		if(_map.bucket_size(i) > 1)
 			collisions += _map.bucket_size(i) - 1;
 	}
+#endif
 	return collisions;
 }
 

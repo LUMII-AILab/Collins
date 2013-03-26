@@ -36,7 +36,6 @@ class Span
 public:
 
 	// g, h, m tokeni
-	// incomplete span ir iekšā divi: complete span un reverse complete, varbūt var ar union ?
 	
 	union
 	{
@@ -601,27 +600,17 @@ FeatureVector::Value scoreDegenCS(const FeatureVector& features, vector<Feature>
 // Papildus var apskatīt deģenerētos gadījumus: h=r un r+1=m, tas notiek incomplete span veidošanas procesā
 // Ir vēl viens gadījums, kas ir jāiekļauj complete span veidošanas procesā: m=e
 //
-// Būtu labi izdalīt atsevišķi deģenerētos gadījumus, lai vieglāk aprēķināt...
-// complete span gadījums noteikti ir jāaprēķina atsevišķi, bet... kombinēt ???
-//
-// Domājams, ka vajadzētu sekojošu algoritmu:
+// Algoritms:
 // * funkcija, kas aprēķina score neko nezinot par deģenerētajiem gadījumiem
 // * funkcija, kas zina par incomplete deģenerētajiem gadījumiem h=r un r+1=m un rēķina tikai tos
-// * funkcija, kas zina par complete deģenerēto gadījumu m=e un arī incomplete, bet rēķina tikai complete (varbūt komplektā ar...)
+// * funkcija, kas zina par complete deģenerēto gadījumu m=e un arī incomplete, bet rēķina tikai complete 
 
 
 // atrākais veids kā veikt extract features ?
 // jāņem vērā arī deģenerētos gadījumus, no kuriem ir izsaukumi arī no complete span veidošanas punkta
-// vēl ir jautājums par atmiņas reģionu: nav jēga veikt jaunas atmiņas alloc, tāpēc, ka pats process neparalelizējas,
+// vēl ir jautājums par atmiņas reģionu: nav vajadzības veikt jaunas atmiņas alloc, tāpēc, ka pats process neparalelizējas,
 // bet ja ir vietas, kuras paralelizējas, tad pietiketu ar veinu features vektoru uz pavediena
-//
-// ir vietas, kur vajag uzreiz izņemt visas iezīmes: pie teikumu salīdzināšanas treniņprocesā ir visas iezīmes vajadzīgas
-//
 
-// double parse(Tokens& tokens, const FeatureVector& features, bool showProgress = true, const std::string& postfix = "");
-
-
-// dažādo iezīmju izgūšanu var dalīt pa funkcijām (cerot uz inline)
 
 
 void parse(Tokens& tokens, const FeatureVector& features)

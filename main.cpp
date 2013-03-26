@@ -32,7 +32,11 @@ int main(int argc, char const* argv[])
 {
 	TrainCase::Arguments defaultArguments;
 	// defaultArguments.featureVectorSize = 300000000;
-	defaultArguments.featureVectorSize = 300000000;
+#if USE_MAP == DENSE_HASH_MAP || USE_MAP == SPARSE_HASH_MAP
+	defaultArguments.featureVectorSize = 1000000;
+#else
+	defaultArguments.featureVectorSize = FV_DEFAULT_SIZE;
+#endif
 	defaultArguments.iterations = 5;
 	defaultArguments.limit = 0;
 	defaultArguments.allowNonProjective = true;

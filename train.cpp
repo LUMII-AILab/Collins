@@ -122,7 +122,11 @@ void TrainCase::train(FeatureVector& featureVector)
 	// else
 	// 	cout << "ok" << endl;
 
+#if USE_MAP != STD_MAP
+	cout << "Feature vector size: " << featureVector.size() << endl;
+	cout << "Feature vector bucket count: " << featureVector.bucket_count() << endl;
 	cout << "Initial feature vector collisions: " << featureVector.collisions() << endl;
+#endif
 
 	// limits tiek norādīts derīgajos tokenus: +1 ir dēļ root tokena "*"
 	if(limit > 0)
@@ -146,6 +150,14 @@ void TrainCase::train(FeatureVector& featureVector)
 
 	int count = 0;				// koku parsējumu kopskaits
 	int countPerIteration = 0;	// koku (parsējumu) skaits uz iterāciju
+
+	cout << "Allocate memory for helper feature vectors ... ";
+	// kāds ir aptuvenais iezīmju skaits noparsētā kokā ?
+	FeatureVector treeFV(1000);
+	FeatureVector goldenFV(1000);
+	// FeatureVector treeFV(1572869);
+	// FeatureVector goldenFV(1572869);
+	cout << "ok" << endl;
 
 	cout << "Training: " << endl;
 
@@ -244,8 +256,10 @@ void TrainCase::train(FeatureVector& featureVector)
 			// ja koki atšķiras
 			if(tree != golden)
 			{
-				FeatureVector treeFV(1572869);
-				FeatureVector goldenFV(1572869);
+				// FeatureVector treeFV(1572869);
+				// FeatureVector goldenFV(1572869);
+				treeFV.clear();
+				goldenFV.clear();
 				tree.extractFeatures(treeFV);
 				golden.extractFeatures(goldenFV);
 
@@ -469,10 +483,13 @@ void TrainCase::run()
 	cout.flush();
 	// FeatureVector featureVector;
 	// FeatureVector featureVector(arguments.featureVectorSize);	// TODO: vajag pieselektēt tuvāko pirmskaitli
-	FeatureVector featureVector;				// NOTE: lai būtu pirmskaitlis (noklusētais)
+	// FeatureVector featureVector;				// NOTE: lai būtu pirmskaitlis (noklusētais)
 	// featureVector.reserve(arguments.featureVectorSize);
+	FeatureVector featureVector(arguments.featureVectorSize);
 	cout << "ok" << endl;
-	cout << "Feature vector bucket count: " << featureVector.bucket_count() << endl;
+#if USE_MAP != STD_MAP
+	cout << "Feature vector initial bucket count: " << featureVector.bucket_count() << endl;
+#endif
 	cout << "Identificator map size: " << arguments.getIDMap().size() << endl;
 
 
@@ -509,9 +526,11 @@ void TrainCase::run()
 		cout << "Verification set with unlimited token count per tree" << endl;
 	cout << "Trained on " << trainTreeCount << " trees" << endl;
 	cout << "Verified on " << checkTreeCount << " trees" << endl;
-	cout << "Feature vector bucket count: " << featureVector.capacity() << endl;
 	cout << "Final feature vector size: " << featureVector.size() << endl;
+#if USE_MAP != STD_MAP
+	cout << "Feature vector bucket count: " << featureVector.capacity() << endl;
 	cout << "Final feature vector collision count: " << featureVector.collisions() << endl;
+#endif
 	cout << "Identificator map size: " << arguments.getIDMap().size() << endl;
 	cout << "Training time: ";
 	outputDuration(trainTime);

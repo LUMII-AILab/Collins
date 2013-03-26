@@ -20,13 +20,34 @@
 #ifndef __FEATURES_HPP__
 #define __FEATURES_HPP__
 
+#define STD_MAP -1
+#define STD_UNORDERED_MAP 0
+#define DENSE_HASH_MAP 1
+#define SPARSE_HASH_MAP 2
+
+// #if USE_MAP == STD_MAP
+// #pragma message ("Using std::map")
+// #elif USE_MAP == STD_UNORDERED_MAP
+// #pragma message ("Using std::unordered_map")
+// #elif USE_MAP == DENSE_HASH_MAP
+// #pragma message ("Using google::dense_hash_map")
+// #elif USE_MAP == SPARSE_HASH_MAP
+// #pragma message ("Using google::sparse_hash_map")
+// #endif
+
 #include <cstdint>
 #include <vector>
 #include <string>
 #include <functional>
 #include <map>
+
+#if USE_MAP == STD_UNORDERED_MAP
 #include <unordered_map>
-#include <tuple>
+#elif USE_MAP == DENSE_HASH_MAP
+#include <sparsehash/dense_hash_map>
+#elif USE_MAP == SPARSE_HASH_MAP
+#include <sparsehash/sparse_hash_map>
+#endif
 
 //
 // Ideja:
@@ -237,12 +258,37 @@ public:
 // #define FV_DEFAULT_SIZE 805306457
 // #define FV_DEFAULT_SIZE 1610612741
 
-	FeatureVector(Index reserve = FV_DEFAULT_SIZE) { _map.reserve(reserve); _weights.reserve(reserve); _features.reserve(reserve); }
+	FeatureVector(Index reserveSize = FV_DEFAULT_SIZE) { reserve(reserveSize); }
 
-	void reserve(Index reserve) { _map.reserve(reserve); _weights.reserve(reserve); _features.reserve(reserve); }
+	void reserve(Index reserve)
+	{
+#if USE_MAP == DENSE_HASH_MAP
+		_map.set_empty_key(Feature((Feature::word)-1));
+#endif
+#if USE_MAP != STD_MAP
+		_map.rehash(reserve);
+#endif
+		_weights.reserve(reserve);
+		_features.reserve(reserve);
+	}
+
+#if USE_MAP == STD_MAP
+	Index capacity() const { return 0; }
+#else
 	Index capacity() const { return _map.bucket_count(); }
+#endif
 
-	void clear() { _map.clear(); _weights.clear(); _features.clear(); }
+	void clear()
+	{
+#if USE_MAP == DENSE_HASH_MAP
+		_map.clear_no_resize();
+#else
+		_map.clear();
+#endif
+		_weights.clear();
+		_features.clear();
+	}
+
 	void zero(); // uzstāda nulles visiem svariem
 
 	Index size() const { return _features.size(); }		// pēc kura no vektoriem labāk ir noteikt izmēru ?
@@ -254,7 +300,12 @@ public:
 	Weights::iterator end() { return _weights.end(); }
 
 	Index collisions() const; // diagnostikai
+
+#if USE_MAP == STD_MAP
+	int bucket_count() const { return 0; }
+#else
 	int bucket_count() const { return _map.bucket_count(); }
+#endif
 
 	void print() const; // izvade uz ekrāna
 	
@@ -312,7 +363,15 @@ private:
 
 	// Lai būtu iespēja darboties ar svaru vektoru kā ar vektoru (std::vector),
 	// svaru (weights) nevar glabāt std::map konteinerī, tos ir jāglabā atsevišķi, tāpēc std::map saturēs indeksus weights vektorā.
+#if USE_MAP == STD_MAP
+	typedef std::map<Feature, Index> FeatureIndexMap;
+#elif USE_MAP == STD_UNORDERED_MAP
 	typedef std::unordered_map<Feature, Index> FeatureIndexMap;
+#elif USE_MAP == DENSE_HASH_MAP
+	typedef google::dense_hash_map<Feature, Index> FeatureIndexMap;
+#elif USE_MAP == SPARSE_HASH_MAP
+	typedef google::sparse_hash_map<Feature, Index> FeatureIndexMap;
+#endif
 	Features _features;
 	Weights _weights;
 	FeatureIndexMap _map;
