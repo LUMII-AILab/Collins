@@ -40,10 +40,11 @@
 #include <string>
 #include <functional>
 #include <map>
-
-#if USE_MAP == STD_UNORDERED_MAP
 #include <unordered_map>
-#elif USE_MAP == DENSE_HASH_MAP
+
+// #if USE_MAP == STD_UNORDERED_MAP
+// #include <unordered_map>
+#if USE_MAP == DENSE_HASH_MAP
 #include <sparsehash/dense_hash_map>
 #elif USE_MAP == SPARSE_HASH_MAP
 #include <sparsehash/sparse_hash_map>
@@ -126,12 +127,14 @@ public:
 		const int start = 1;
 		// p = data+start;
 		const int size = add(start, args...);
+#ifdef DEBUG
 		if(size >= 0x100)
 			overflow_assert();
+#endif
 		data[0] = (byte)size;
 	}
 
-	void overflow_assert() const;	// TODO: tikai debug režīmā, kādas direktīvas ?
+	void overflow_assert() const;	// tikai debug režīmā
 
 private:
 
@@ -140,9 +143,10 @@ private:
 	template <typename... Args>
 	const int add(const int pos, const byte& v, const Args&... args)
 	{
-		// debug nolūkos
+#ifdef DEBUG
 		if(pos > sizeof(data)-sizeof(v))
 			return 0x0100+pos;
+#endif
 
 		// *((byte*)p++) = v;
 		*((byte*)&data[pos]) = v;
@@ -153,9 +157,10 @@ private:
 	template <typename... Args>
 	const int add(const int pos, const word& v, const Args&... args)
 	{
-		// debug nolūkos
+#ifdef DEBUG
 		if(pos > sizeof(data)-sizeof(v))
 			return 0x0100+pos;
+#endif
 
 		*((word*)&data[pos]) = v;
 		// *((word*)p) = v;
@@ -167,9 +172,10 @@ private:
 	template <typename... Args>
 	const int add(const int pos, const dword& v, const Args&... args)
 	{
-		// debug nolūkos
+#ifdef DEBUG
 		if(pos > sizeof(data)-sizeof(v))
 			return 0x100+pos;
+#endif
 
 		*((dword*)&data[pos]) = v;
 		// *((dword*)p) = v;
@@ -412,7 +418,8 @@ private:
 				return r;
 		}
 
-		std::map<std::string, int>::const_iterator it = map.find(s);
+		Map::const_iterator it = map.find(s);
+		// std::map<std::string, int>::const_iterator it = map.find(s);
 		if(it == map.end())
 			return -1;
 
@@ -421,7 +428,9 @@ private:
 
 	int next;
 	const IndexMap* primary;
-	std::map<std::string, int> map;
+	typedef std::unordered_map<std::string, int> Map;
+	// typedef std::map<std::string, int> Map;
+	Map map;
 };
 
 // 

@@ -1,6 +1,19 @@
 cmake_minimum_required(VERSION 2.6)
 project(collins) 
 
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL Clang)
+	message(FATAL_ERROR "Clang required!")
+endif()
+
+if(NOT CMAKE_BUILD_TYPE)
+	message(STATUS "Build type: RelWithDebInfo (default)")
+	set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+else()
+	message(STATUS "Build type: " ${CMAKE_BUILD_TYPE})
+endif()
+
+set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG")
+
 #set(Boost_USE_STATIC_LIBS        ON)
 #set(Boost_USE_MULTITHREADED      ON)
 #set(Boost_USE_STATIC_RUNTIME    OFF)
@@ -11,19 +24,25 @@ if(Boost_FOUND)
 	#message(STATUS ${Boost_LIBRARIES})
 endif()
 
-# TODO: pārbaudīt vai ir clang, vai g++
-set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -O2 -g")
+# enable C++11 and libc++
+set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+#set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -O2 -g")
 #set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -O2 -g -arch i386 -arch x86_64")
 
-
-# Map container selection
-if(NOT USE_MAP)	# normalize to numeric default
-	set(USE_MAP 0)
-endif()
-
+# find sparsehash headers
 find_file(SPARSEHASH_HEADER sparsehash/sparse_hash_map)
 find_file(DENSEHASH_HEADER sparsehash/dense_hash_map)
 
+# select default map container
+if(NOT DEFINED USE_MAP)
+	if(DENSEHASH_HEADER)
+		set(USE_MAP 1)
+	else()
+		set(USE_MAP 0)
+	endif()
+endif()
+
+# map container info
 if(USE_MAP EQUAL -1)
 	message(STATUS "Will use std::map")
 elseif(USE_MAP EQUAL 0) # default
@@ -44,10 +63,8 @@ else()
 endif()
 
 add_definitions(-DUSE_MAP=${USE_MAP})
-# ----------
 
 
-#add_executable(collins main.cpp collins0.cpp train.cpp utils.cpp features.cpp MurmurHash3.cpp)
 add_executable(collins main.cpp train.cpp features.cpp collins0.cpp utils.cpp)
 
 target_link_libraries(collins ${Boost_LIBRARIES})
