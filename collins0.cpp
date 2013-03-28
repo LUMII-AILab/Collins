@@ -50,6 +50,11 @@ public:
 			const Span* cs;		// Complete Span
 			const Span* rcs;	// Reverse complete span
 		} ics;
+
+		struct {
+			const Span* first;
+			const Span* second;
+		};
 	};
 
 	typedef enum {
@@ -74,6 +79,7 @@ public:
 	
 	Span()
 	{
+		/*
 		type = Undefined;
 		score = 0;
 		gtoken = nullptr;
@@ -84,6 +90,7 @@ public:
 		// nav vajadzīgs, jo cs un ics ir union
 		// ics.cs = nullptr;
 		// ics.rcs = nullptr;
+		*/
 	}
 
 	void terminal(const Token* g, const Token* h)
@@ -96,9 +103,47 @@ public:
 		cs.cs = nullptr;
 		score = 0;
 	}
+
+	void set(const Span& firstSpan, const Span& secondSpan, const FeatureVector::Value& score_ = 0)
+	{
+		first = &firstSpan;
+		second = &secondSpan;
+		score = score_;
+	}
+
+	void complete()
+	{
+		type = Complete;
+		gtoken = first->gtoken;
+		htoken = first->htoken;
+		mtoken = first->mtoken;	// mtoken vai labāk etoken ? (var ar union)
+	}
+
+	void incomplete()
+	{
+		type = Incomplete;
+		gtoken = first->gtoken;
+		htoken = first->htoken;
+		mtoken = second->htoken;
+	}
+
+	void incomplete(const FeatureVector& features, vector<Feature>& localFeatures)
+	{
+		type = Incomplete;
+		gtoken = first->gtoken;
+		htoken = first->htoken;
+		mtoken = second->htoken;
+		scoreSelf(features, localFeatures);
+	}
 	
 	void complete(const Span* incomplete, const Span* complete, FeatureVector::Value score_ = 0)
 	{
+#ifdef DEBUG
+		if(incomplete->type != Incomplete)
+			cout << "WARNING!!! Incomplete type expected, got " << (int)incomplete->type << endl;
+		if(complete->type != Complete && complete->type != Terminal)
+			cout << "WARNING!!! Incomplete or Terminal type expected, got " << (int)complete->type << endl;
+#endif
 		type = Complete;
 		cs.ics = incomplete;
 		cs.cs = complete;
@@ -111,6 +156,12 @@ public:
 
 	void incomplete(const Span* complete, const Span* reverse, FeatureVector::Value score_ = 0)
 	{
+#ifdef DEBUG
+		if(complete->type != Complete && complete->type != Terminal)
+			cout << "WARNING!!! Incomplete or Terminal type expected, got " << (int)complete->type << endl;
+		if(reverse->type != Complete && reverse->type != Terminal)
+			cout << "WARNING!!! Incomplete or Terminal type expected, got " << (int)reverse->type << endl;
+#endif
 		type = Incomplete;
 		ics.cs = complete;
 		ics.rcs = reverse;
@@ -151,7 +202,7 @@ public:
 	typedef struct Spans {
 		Span complete;
 		Span incomplete;
-		Spans() { complete.type = Span::Complete; incomplete.type = Span::Incomplete; }
+		// Spans() { complete.type = Span::Complete; incomplete.type = Span::Incomplete; }
 	} Spans;
 
 	Spans& operator()(int g, int i, int j) { return store[(g+1)*szi*szj + i*szj + j]; }
@@ -554,7 +605,6 @@ FeatureVector::Value scoreDegenICS(const FeatureVector& features, vector<Feature
 {
 	FeatureVector::Value score = 0;
 
-	// TODO: var atbrīvoties no šiem starpmainīgajiem
 	const Token* gtoken = cs.gtoken;
 	const Token* htoken = cs.htoken;
 	const Token* mtoken = rcs.htoken;
@@ -576,7 +626,6 @@ FeatureVector::Value scoreDegenCS(const FeatureVector& features, vector<Feature>
 {
 	FeatureVector::Value score = 0;
 
-	// TODO: var atbrīvoties no šiem starpmainīgajiem
 	const Token* gtoken = ics.gtoken;
 	const Token* htoken = ics.htoken;
 	const Token* mtoken = ics.mtoken;
@@ -643,12 +692,14 @@ void parse(Tokens& tokens, const FeatureVector& features)
 					continue;
 				}
 
-				// incomplete spans, w > 0
-				if(w > 0)
+				// forward
 				{
+					SpanStore::Spans& gij = spans(g, i, j);
+
 					// incomplete = complete + reverse complete
 					{
-						Span& span = spans(g, i, j).incomplete;
+						Span& span = gij.incomplete;
+						// Span& span = spans(g, i, j).incomplete;
 
 						for(int r=i; r<j; r++)
 						{
@@ -660,20 +711,42 @@ void parse(Tokens& tokens, const FeatureVector& features)
 								score += scoreDegenICS(features, localFeatures, cs, rcs);
 
 							if(r == i || score > span.score)	// bez r == i neiztikt, jo score var būt mazāks par 0, nav zināma minimālā vērtība
-							{
-								span.incomplete(&cs, &rcs, score);
-								// span.score = score;
-								// span.ics.cs = &cs;
-								// span.ics.rcs = &rcs;
-							}
+								span.set(cs, rcs, score);
 						}
 
-						span.scoreSelf(features, localFeatures);
+						span.incomplete(features, localFeatures);
 					}
+					
+					// complete = incomplete + complete
+					{
+						Span& span = gij.complete;
+						// Span& span = spans(g, i, j).complete;
 
+						for(int m=i+1; m<=j; m++)
+						{
+							const Span& ics = spans(g, i, m).incomplete;
+							const Span& cs = spans(i, m, j).complete;
+							score = ics.score + cs.score;
+							
+							if(m == j)
+								score += scoreDegenCS(features, localFeatures, ics);
+
+							if(m == i+1 || score > span.score)
+								span.set(ics, cs, score);
+						}
+
+						span.complete();
+					}
+				}
+				
+				// reverse
+				{
+					SpanStore::Spans& gji = spans(g, j, i);
+					
 					// reverse incomplete = complete + reverse complete
 					{
-						Span& span = spans(g, j, i).incomplete;
+						Span& span = gji.incomplete;
+						// Span& span = spans(g, j, i).incomplete;
 
 						for(int r=i; r<j; r++)
 						{
@@ -685,63 +758,31 @@ void parse(Tokens& tokens, const FeatureVector& features)
 								score += scoreDegenICS(features, localFeatures, cs, rcs);
 
 							if(r == i || score > span.score)
-							{
-								span.incomplete(&cs, &rcs, score);
-								// span.score = score;
-								// span.ics.cs = &cs;
-								// span.ics.rcs = &rcs;
-							}
+								span.set(cs, rcs, score);
 						}
 
-						span.scoreSelf(features, localFeatures);
+						span.incomplete(features, localFeatures);
 					}
-				}
 
-				// complete spans
-				
-				// complete = incomplete + complete
-				{
-					Span& span = spans(g, i, j).complete;
-
-					for(int m=i+1; m<=j; m++)
+					// reverse complete = incomplete + complete
 					{
-						const Span& ics = spans(g, i, m).incomplete;
-						const Span& cs = spans(i, m, j).complete;
-						score = ics.score + cs.score;
-						
-						if(m == j)
-							score += scoreDegenCS(features, localFeatures, ics);
+						Span& span = gji.complete;
+						// Span& span = spans(g, j, i).complete;
 
-						if(m == i+1 || score > span.score)
+						for(int m=i; m<j; m++)
 						{
-							span.complete(&ics, &cs, score);
-							// span.score = score;
-							// span.cs.ics = &ics;
-							// span.cs.cs = &cs;
+							const Span& ics = spans(g, j, m).incomplete;
+							const Span& cs = spans(j, m, i).complete;
+							score = ics.score + cs.score;
+							
+							if(m == i)
+								score += scoreDegenCS(features, localFeatures, ics);
+
+							if(m == i || score > span.score)
+								span.set(ics, cs, score);
 						}
-					}
-				}
 
-				// reverse complete = incomplete + complete
-				{
-					Span& span = spans(g, j, i).complete;
-
-					for(int m=i; m<j; m++)
-					{
-						const Span& ics = spans(g, j, m).incomplete;
-						const Span& cs = spans(j, m, i).complete;
-						score = ics.score + cs.score;
-						
-						if(m == i)
-							score += scoreDegenCS(features, localFeatures, ics);
-
-						if(m == i || score > span.score)
-						{
-							span.complete(&ics, &cs, score);
-							// span.score = score;
-							// span.cs.ics = &ics;
-							// span.cs.cs = &cs;
-						}
+						span.complete();
 					}
 				}
 			}

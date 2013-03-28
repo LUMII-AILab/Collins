@@ -161,7 +161,7 @@ private:
 
 	IndexMap& idMap;
 
-	void addRoot() { std::set<std::string> tags; tags.insert("R"); add("[*]", "[*]", "R", tags, -1); }
+	void addRoot() { std::set<std::string> tags; tags.emplace("R"); add("[*]", "[*]", "R", tags, -1); }
 	void extractParents(const Span* span);
 
 	std::vector<Token> tokens;
