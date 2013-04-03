@@ -30,7 +30,7 @@
 // 
 // Funkcija, kas ielasa kokus no CoLL faila
 //
-void readFile(IndexMap& idMap, Trees& trees, const std::string& path);
+void readFile(IndexMap& idMap, Trees& trees, const std::string& path, bool useGeneralTags);
 
 
 //
@@ -115,6 +115,7 @@ public:
 			featureVectorSize = 300000000;
 			seed = 0;
 			permutate = true;
+			useGeneralTags = false;
 		}
 
 		Arguments(const Arguments& arguments) {
@@ -133,6 +134,7 @@ public:
 			featureVectorSize = arguments.featureVectorSize;
 			seed = arguments.seed;
 			permutate = arguments.permutate;
+			useGeneralTags = arguments.useGeneralTags;
 
 			trainTrees = arguments.trainTrees;
 			checkTrees = arguments.checkTrees;
@@ -157,6 +159,7 @@ public:
 		Arguments& setFeatureVecorSize(int value) { featureVectorSize = value; return *this; }
 		Arguments& setSeed(int value) { seed = value; return *this; }
 		Arguments& setPermutate(bool value) { permutate = value; return *this; }
+		Arguments& setUseGeneralTags(bool value) { useGeneralTags = value; return *this; }
 		Arguments& setIDMap(IndexMap& value) { idMap = value; return *this; }
 
 		ConfigValue<int> featureVectorSize;
@@ -177,6 +180,7 @@ public:
 		ConfigValueByPtr<Trees> checkTrees;
 		ConfigValue<int> seed;
 		ConfigValue<bool> permutate;
+		ConfigValue<bool> useGeneralTags;
 		ConfigValueByPtr<IndexMap> idMap;
 
 		IndexMap& getIDMap()
@@ -197,12 +201,12 @@ public:
 			trainCoNLL.onChange = [this]() {
 				_trainTrees.reset(new Trees());
 				trainTrees = *_trainTrees;
-				readFile(getIDMap(), trainTrees, trainCoNLL);
+				readFile(getIDMap(), trainTrees, trainCoNLL, useGeneralTags());
 			};
 			checkCoNLL.onChange = [this]() {
 				_checkTrees.reset(new Trees());
 				checkTrees = *_checkTrees;
-				readFile(getIDMap(), checkTrees, checkCoNLL);
+				readFile(getIDMap(), checkTrees, checkCoNLL, useGeneralTags());
 			};
 		}
 

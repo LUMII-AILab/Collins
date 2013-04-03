@@ -60,6 +60,9 @@ int main(int argc, char const* argv[])
 			("trainset,s", po::value<vector<int>>(), "use train & verification sets: 1,2,4,... (default: 0,1,2,3,4,5,6,7,8,9)")
 			("seed,S", po::value<int>(), "training tree order permutation seed, -1 to disable")
 			// ("disable-permutations,d", "disable training tree order permutations")
+			("general-tags,g", "use general tags (with wildcards: _)")
+			("basedir,b", po::value<string>(), "set basedir in paths basedir/train/..., basedir/golden/... (default: current directory)")
+			("version,v", "print version information and exit")
 		;
 
 		po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -79,7 +82,47 @@ int main(int argc, char const* argv[])
 		return 1;
 	}
 
-	cout << "Collins model 0 parser" << endl << endl;
+
+	// print version information
+	
+	cout << "Collins model 0 parser" << endl;
+
+#ifdef NDEBUG
+	cout << "Release version";
+#else
+	cout << "Debug version";
+#endif
+
+	// see: http://clang.llvm.org/docs/LanguageExtensions.html#feature_check
+	cout << ", built";
+#ifdef __clang__
+   	cout << " with clang " << __clang_version__;
+#endif
+	cout << " @ ";
+	cout << __DATE__ << " " << __TIME__ << endl;
+
+	cout << "With feature vector map container: ";
+#if USE_MAP == STD_MAP
+	cout << "std::map";
+#elif USE_MAP == STD_UNORDERED_MAP
+	cout << "std::unordered_map";
+#elif USE_MAP == DENSE_HASH_MAP
+	cout << "google::dense_hash_map";
+#elif USE_MAP == SPARSE_HASH_MAP
+	cout << "google::sparse_hash_map";
+#else
+	cout << "unknown";
+#endif
+	cout << endl;
+
+
+	cout << endl;
+
+	// exit if only version information needed
+	if(vm.count("version"))
+	{
+		return 0;
+	}
 
 	// print command line
 	cout << "Command Line: ";
@@ -90,6 +133,7 @@ int main(int argc, char const* argv[])
 	}
 	cout << endl;
 
+	string basedir = "";
 	vector<int> trainsets;
 
 	try
@@ -143,12 +187,23 @@ int main(int argc, char const* argv[])
 		{
 			trainsets = vm["trainset"].as<vector<int>>();
 		}
+		if(vm.count("general-tags"))
+		{
+			defaultArguments.useGeneralTags = true;
+		}
+		if(vm.count("basedir"))
+		{
+			basedir = vm["basedir"].as<string>();
+		}
 	}
 	catch(exception& e)
 	{
         cerr << "error: " << e.what() << "\n";
 		return 1;
 	}
+
+	if(!basedir.empty() && basedir.back() != '/')
+		basedir += '/';
 
 	// ja ir tukšs, tad piepilda
 	if(trainsets.size() == 0)
@@ -191,12 +246,12 @@ int main(int argc, char const* argv[])
 	cout << "Trainsets:" << endl;
 
 	vector<string> trainCoNLL, checkCoNLL;
-	char buf[255];
+	char buf[1024];
 	for(int i : trainsets)
 	{
-		sprintf(buf, "train/train%i.conll", i);
+		sprintf(buf, "%strain/train%i.conll", basedir.c_str(), i);
 		trainCoNLL.push_back(buf);
-		sprintf(buf, "golden/golden%i.conll", i);
+		sprintf(buf, "%sgolden/golden%i.conll", basedir.c_str(), i);
 		checkCoNLL.push_back(buf);
 		cout << trainCoNLL[trainCoNLL.size()-1] << ", " << checkCoNLL[checkCoNLL.size()-1] << endl;
 	}

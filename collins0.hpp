@@ -185,7 +185,7 @@ public:
 	// Copy konstruktors ar unlink iespēju
 	Trees(const Trees& s, bool unlink = false) : trees(s.trees) { if(unlink) for(Tokens& tokens : trees) tokens.unlink(); }
 
-	bool readCoNLL(IndexMap& idMap, const std::string& filename);
+	bool readCoNLL(IndexMap& idMap, const std::string& filename, bool useGeneralTags = false);
 
 	void extractFeatures(FeatureVector& targetFeatureVector);
 

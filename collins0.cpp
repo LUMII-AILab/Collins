@@ -1156,7 +1156,7 @@ void Tokens::print() const
 	}
 }
 
-bool Trees::readCoNLL(IndexMap& idMap, const string& filename)
+bool Trees::readCoNLL(IndexMap& idMap, const string& filename, bool useGeneralTags)
 {
 	ifstream ifs(filename);
 
@@ -1194,8 +1194,16 @@ bool Trees::readCoNLL(IndexMap& idMap, const string& filename)
 			index = stoi(boost::copy_range<std::string>(*part++));
 			word = boost::copy_range<string>(*part++);
 			lemma = boost::copy_range<string>(*part++);
-			part++;		// POS tags
-			tag = boost::copy_range<string>(*part++);
+			if(useGeneralTags)
+			{
+				tag = boost::copy_range<string>(*part++);
+				part++;		// skip full POS tag
+			}
+			else
+			{
+				part++;		// skip general POS tag
+				tag = boost::copy_range<string>(*part++);
+			}
 			dummy = boost::copy_range<string>(*part++);
 			parentIndex = stoi(boost::copy_range<std::string>(*part++));
 

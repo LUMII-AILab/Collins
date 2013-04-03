@@ -35,10 +35,10 @@ using namespace std;
 // 
 // Funkcija, kas ielasa kokus no CoLL faila
 //
-void readFile(IndexMap& idMap, Trees& trees, const string& path)
+void readFile(IndexMap& idMap, Trees& trees, const string& path, bool useGeneralTags)
 {
 	cout << path << " ... ";
-	if(trees.readCoNLL(idMap, path))
+	if(trees.readCoNLL(idMap, path, useGeneralTags))
 		cout << "ok" << endl;
 	else
 		cout << "fail" << endl;
@@ -430,6 +430,15 @@ void TrainCase::run()
 	Trees& trainTrees = arguments.trainTrees;
 	Trees& checkTrees = arguments.checkTrees;
 
+	if(trainTrees.size() == 0 || checkTrees.size() == 0)
+	{
+		if(trainTrees.size() == 0)
+			cout << "Error: empty training set!" << endl;
+		if(checkTrees.size() == 0)
+			cout << "Error: empty verification set!" << endl;
+		return;
+	}
+
 	// pārbauda start, stop vērtības
 
 	if(arguments.trainStop == 0 || arguments.trainStop > trainTrees.size())
@@ -460,6 +469,8 @@ void TrainCase::run()
 	cout << "Will perform " << arguments.iterations << " iterations " << (arguments.permutate ? "with" : "without") << " permutations";
 	if(arguments.permutate)
 		cout << " using seed " << arguments.seed;
+	if(arguments.useGeneralTags)
+		cout << " with general tags";
 	cout << endl;
 	cout << "Training set non-projective trees " << (arguments.allowTrainNonProjective ? "included" : "excluded") << endl;
 	cout << "Verification set non-projective trees " << (arguments.allowCheckNonProjective ? "included" : "excluded") << endl;
@@ -515,6 +526,8 @@ void TrainCase::run()
 	cout << "Trained with " << arguments.iterations() << " iterations " << (arguments.permutate ? "with" : "without") << " permutations";
 	if(arguments.permutate)
 		cout << " using seed " << arguments.seed;
+	if(arguments.useGeneralTags)
+		cout << " with general tags";
 	cout << endl;
 	if(arguments.trainLimit > 0)
 		cout << "Training set limited to " << arguments.trainLimit() << " tokens per tree" << endl;
