@@ -1,6 +1,7 @@
 "use strict";
 
-var app = angular.module('app', ['ngResource', 'ui', 'ngDragDrop', 'ui.bootstrap']);
+// var app = angular.module('app', ['ngResource', 'ui', 'ngDragDrop', 'ui.bootstrap']);
+var app = angular.module('app', ['ngResource', 'ui', 'ui.bootstrap']);
 
 
 // http://stackoverflow.com/questions/14544741/angularjs-directive-to-stoppropagation/14547223#14547223
