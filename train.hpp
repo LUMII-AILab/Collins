@@ -21,8 +21,74 @@
 
 #include <functional>
 #include <memory>
+#include <iostream>
+#include <list>
+#include <fstream>
+#include <string>
+
+#include <boost/filesystem.hpp>
 
 #include "collins0.hpp"
+
+
+
+
+// Mērķis ir izveidot bāzes klasi, kura spēj kombinēt straumes tā, lai tās būtu secīgi viena pēc otras
+// Izdarīt to pilnīgi caurspīdīgi būs sarežģīti (tā šķiet), tāpēc var izveidot kaut ko līdzīgu next()
+//
+// Pielietojums:
+//
+// while(streams::stream& stream = streams.next())
+// {
+// 		// darbības ar stream objektu šeit (līdz iztērē)
+// }
+//
+// abstrakta bāzes klase
+class streams
+{
+public:
+	typedef std::basic_istream<char> stream;
+	streams() : cnull(0) {}
+	virtual stream& next() = 0;
+protected:
+	std::istream cnull;		// pēdējais next() izvads - apzīmē kā beigas
+};
+
+// atvasinātā klase cin straumei
+class cinstream : public streams
+{
+public:
+	cinstream() { done = false; }
+	stream& next() { return !done ? std::cin : cnull; }
+private:
+	bool done;
+};
+
+// atvasinātā klase ievadfailu straumei
+class filestreams : public streams
+{
+public:
+	filestreams(const std::vector<boost::filesystem::path> paths) { current = nullptr; for(auto& path : paths) files.emplace_back(path.string()); }
+	stream& next() 
+	{
+		if(current)
+		{
+			delete current;
+			current = nullptr;
+		}
+
+		if(files.empty())
+			return cnull;
+
+		current = new std::ifstream(files.front());
+		files.pop_front();
+
+		return *current;
+	}
+private:
+	std::ifstream* current;
+	std::list<std::string> files;
+};
 
 
 
@@ -30,7 +96,7 @@
 // 
 // Funkcija, kas ielasa kokus no CoLL faila
 //
-void readFile(IndexMap& idMap, Trees& trees, const std::string& path, bool useGeneralTags);
+void readFile(IndexMap& idMap, Trees& trees, const std::string& path, bool useGeneralTags = false);
 
 
 //
@@ -116,6 +182,7 @@ public:
 			seed = 0;
 			permutate = true;
 			useGeneralTags = false;
+			quiet = false;
 		}
 
 		Arguments(const Arguments& arguments) {
@@ -135,6 +202,7 @@ public:
 			seed = arguments.seed;
 			permutate = arguments.permutate;
 			useGeneralTags = arguments.useGeneralTags;
+			quiet = arguments.quiet;
 
 			trainTrees = arguments.trainTrees;
 			checkTrees = arguments.checkTrees;
@@ -161,6 +229,7 @@ public:
 		Arguments& setPermutate(bool value) { permutate = value; return *this; }
 		Arguments& setUseGeneralTags(bool value) { useGeneralTags = value; return *this; }
 		Arguments& setIDMap(IndexMap& value) { idMap = value; return *this; }
+		Arguments& setQuiet(bool value) { quiet = value; return *this; }
 
 		ConfigValue<int> featureVectorSize;
 		ConfigValue<int> trainStart;
@@ -174,6 +243,7 @@ public:
 		ConfigValue<bool> allowNonProjective;
 		ConfigValue<bool> allowTrainNonProjective;
 		ConfigValue<bool> allowCheckNonProjective;
+		ConfigValue<bool> quiet;
 		ConfigValue<std::string> trainCoNLL;
 		ConfigValue<std::string> checkCoNLL;
 		ConfigValueByPtr<Trees> trainTrees;
@@ -216,7 +286,9 @@ public:
 	};
 	
 	template <typename... OtherArguments>
-	TrainCase(const Arguments& args, const OtherArguments&... otherArgs) : arguments(args) { run(); }
+	TrainCase(const Arguments& args, const OtherArguments&... otherArgs) : arguments(args), featureVector(0) { run(); }
+
+	FeatureVector featureVector;
 	
 private:
 
@@ -240,9 +312,10 @@ private:
 
 	void run();
 	void train(FeatureVector& featureVector);
-	void check(FeatureVector& featureVector);
+	void check(const FeatureVector& featureVector);
 
 	Arguments arguments;
+	// FeatureVector featureVector;
 
 	int collisions;
 	int trainTreeCount;
@@ -271,6 +344,7 @@ public:
 
 	template <typename... OtherArguments>
 	void operator()(const TrainCase::Arguments& args, const OtherArguments&... otherArgs) { trainCases.emplace_back(args); } 
+	const TrainCase& last() const { return trainCases.back(); }
 
 	void summary();	
 
@@ -279,6 +353,10 @@ private:
 	std::vector<TrainCase> trainCases;
 };
 
+
+bool train(TrainCase::Arguments& arguments, FeatureVector& featureVector, IndexMap& idMap, streams& istreams);
+bool parse(TrainCase::Arguments& arguments, const FeatureVector& featureVector, const IndexMap& idMap,
+		streams& istreams, std::basic_ostream<char>& ostream);
 
 
 #endif // __TRAIN_HPP__

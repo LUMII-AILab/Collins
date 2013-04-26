@@ -19,6 +19,7 @@
 #include <iostream>
 #include <iomanip>
 #include <set>
+#include <sstream>
 
 // #include <boost/filesystem.hpp>
 
@@ -319,7 +320,7 @@ void TrainCase::train(FeatureVector& featureVector)
 //
 // Pārbaudes funkcija
 //
-void TrainCase::check(FeatureVector& featureVector)
+void TrainCase::check(const FeatureVector& featureVector)
 {
 	const Trees& checkTrees = arguments.checkTrees;
 	int limit = arguments.checkLimit;
@@ -427,15 +428,25 @@ void TrainCase::run()
 	// ievadparametri: iterācijas, treniņa tokenu limits, pārbaudes tokenu limits, treniņkoku skaits, pārbaudes koku skaits
 	// iezīmju vektora bucket skaits
 	
+	bool verify = arguments.checkTrees.valid();
+	bool quiet = arguments.quiet();
+	
 	Trees& trainTrees = arguments.trainTrees;
-	Trees& checkTrees = arguments.checkTrees;
 
-	if(trainTrees.size() == 0 || checkTrees.size() == 0)
+	Trees dummy;
+	// Diemžēl šo atslēgt nav iespējams, var vienīgi norādīt uz trainTrees, bet tad ir avots jaunām, iespējams, grūti nosakāmām kļūdām.
+	// Tad jau drīzāk uz tukšu kopu!
+	Trees& checkTrees = verify ? arguments.checkTrees() : dummy;
+
+	if(trainTrees.size() == 0 || (verify && checkTrees.size() == 0))
 	{
-		if(trainTrees.size() == 0)
-			cout << "Error: empty training set!" << endl;
-		if(checkTrees.size() == 0)
-			cout << "Error: empty verification set!" << endl;
+		if(!quiet)
+		{
+			if(trainTrees.size() == 0)
+				cout << "Error: empty training set!" << endl;
+			if(verify && checkTrees.size() == 0)
+				cout << "Error: empty verification set!" << endl;
+		}
 		return;
 	}
 
@@ -446,62 +457,84 @@ void TrainCase::run()
 	else if(arguments.trainStop < 0)
 		arguments.trainStop = trainTrees.size() + arguments.trainStop;
 
-	if(arguments.checkStop == 0 || arguments.checkStop > checkTrees.size())
-		arguments.checkStop = checkTrees.size();
-	else if(arguments.checkStop < 0)
-		arguments.checkStop = checkTrees.size() + arguments.checkStop;
+	if(verify)
+	{
+		if(arguments.checkStop == 0 || arguments.checkStop > checkTrees.size())
+			arguments.checkStop = checkTrees.size();
+		else if(arguments.checkStop < 0)
+			arguments.checkStop = checkTrees.size() + arguments.checkStop;
+	}
 
 	if(arguments.trainStart < 0)
 		arguments.trainStart = trainTrees.size() + arguments.trainStart;
 	if(arguments.trainStart > arguments.trainStop)
 		arguments.trainStart = arguments.trainStop;
 
-	if(arguments.checkStart < 0)
-		arguments.checkStart = checkTrees.size() + arguments.checkStart;
-	if(arguments.checkStart > arguments.checkStop)
-		arguments.checkStart = arguments.checkStop;
+	if(verify)
+	{
+		if(arguments.checkStart < 0)
+			arguments.checkStart = checkTrees.size() + arguments.checkStart;
+		if(arguments.checkStart > arguments.checkStop)
+			arguments.checkStart = arguments.checkStop;
+	}
 	
 
-	if(!arguments.trainCoNLL().empty())
-		cout << "Training tree set from " << arguments.trainCoNLL() << endl;
-	if(!arguments.checkCoNLL().empty())
-		cout << "Verification tree set from " << arguments.checkCoNLL() << endl;
-	cout << "Will perform " << arguments.iterations << " iterations " << (arguments.permutate ? "with" : "without") << " permutations";
-	if(arguments.permutate)
-		cout << " using seed " << arguments.seed;
-	if(arguments.useGeneralTags)
-		cout << " with general tags";
-	cout << endl;
-	cout << "Training set non-projective trees " << (arguments.allowTrainNonProjective ? "included" : "excluded") << endl;
-	cout << "Verification set non-projective trees " << (arguments.allowCheckNonProjective ? "included" : "excluded") << endl;
-	if(arguments.trainLimit > 0)
-		cout << "Will limit to " << arguments.trainLimit();
-	else
-		cout << "Unlimited";
-	cout << " training tokens per tree" << endl;
-	if(arguments.checkLimit > 0)
-		cout << "Will limit to " << arguments.checkLimit();
-	else
-		cout << "Unlimited";
-	cout << " verification tokens per tree" << endl;
-	// cout << "Feature vector bucket count: " << arguments.featureVectorSize() << endl;
-	cout << "Training trees: [" << arguments.trainStart() << "," << arguments.trainStop() << ") of " << trainTrees.size() << " trees" << endl;
-	cout << "Verification trees: [" << arguments.checkStart() << "," << arguments.checkStop() << ") of " << checkTrees.size() << " trees" << endl;
+	if(!quiet)
+	{
+		if(!arguments.trainCoNLL().empty())
+			cout << "Training tree set from " << arguments.trainCoNLL() << endl;
+		if(verify && !arguments.checkCoNLL().empty())
+			cout << "Verification tree set from " << arguments.checkCoNLL() << endl;
+		cout << "Will perform " << arguments.iterations << " iterations " << (arguments.permutate ? "with" : "without") << " permutations";
+		if(arguments.permutate)
+			cout << " using seed " << arguments.seed;
+		if(arguments.useGeneralTags)
+			cout << " with general tags";
+		cout << endl;
+		cout << "Training set non-projective trees " << (arguments.allowTrainNonProjective ? "included" : "excluded") << endl;
+		if(verify)
+			cout << "Verification set non-projective trees " << (arguments.allowCheckNonProjective ? "included" : "excluded") << endl;
+		if(arguments.trainLimit > 0)
+			cout << "Will limit to " << arguments.trainLimit();
+		else
+			cout << "Unlimited";
+		cout << " training tokens per tree" << endl;
+		if(verify)
+		{
+			if(arguments.checkLimit > 0)
+				cout << "Will limit to " << arguments.checkLimit();
+			else
+				cout << "Unlimited";
+			cout << " verification tokens per tree" << endl;
+		}
+		// cout << "Feature vector bucket count: " << arguments.featureVectorSize() << endl;
+		cout << "Training trees: [" << arguments.trainStart() << "," << arguments.trainStop() << ") of " << trainTrees.size() << " trees" << endl;
+		if(verify)
+			cout << "Verification trees: [" << arguments.checkStart() << "," << arguments.checkStop() << ") of "
+				<< checkTrees.size() << " trees" << endl;
+	}
 
 
 	// rezervē iezīmju vektoram atmiņu, būtiski optimālai ātrdarbībai
-	cout << "Allocate memory for feature vector ... ";
-	cout.flush();
+	if(!quiet)
+	{
+		cout << "Allocate memory for feature vector ... ";
+		cout.flush();
+	}
 	// FeatureVector featureVector;
 	// FeatureVector featureVector(arguments.featureVectorSize);	// TODO: vajag pieselektēt tuvāko pirmskaitli
 	// FeatureVector featureVector;				// NOTE: lai būtu pirmskaitlis (noklusētais)
 	// featureVector.reserve(arguments.featureVectorSize);
-	FeatureVector featureVector(arguments.featureVectorSize);
-	cout << "ok" << endl;
+	// FeatureVector featureVector(arguments.featureVectorSize);
+	featureVector.reserve(arguments.featureVectorSize);
+	if(!quiet)
+	{
+		cout << "ok" << endl;
 #if USE_MAP != STD_MAP
-	cout << "Feature vector initial bucket count: " << featureVector.bucket_count() << endl;
+		cout << "Feature vector initial bucket count: " << featureVector.bucket_count() << endl;
 #endif
-	cout << "Identificator map size: " << arguments.getIDMap().size() << endl;
+		cout << "Identificator map size: " << arguments.getIDMap().size() << endl;
+	}
 
 
 
@@ -515,45 +548,56 @@ void TrainCase::run()
 	trainTime = timing;
 	timing.start();
 
-	check(featureVector);
+	if(verify)
+		check(featureVector);
 
 	timing.stop();
-	checkTime = timing;
+	if(verify)
+		checkTime = timing;
+	else
+		checkTime = 0;
 
 	collisions = featureVector.collisions();
 
 
-	cout << "Trained with " << arguments.iterations() << " iterations " << (arguments.permutate ? "with" : "without") << " permutations";
-	if(arguments.permutate)
-		cout << " using seed " << arguments.seed;
-	if(arguments.useGeneralTags)
-		cout << " with general tags";
-	cout << endl;
-	if(arguments.trainLimit > 0)
-		cout << "Training set limited to " << arguments.trainLimit() << " tokens per tree" << endl;
-	else if(arguments.trainLimit == 0)
-		cout << "Training set with unlimited token count per tree" << endl;
-	if(arguments.checkLimit > 0)
-		cout << "Verification set limited to " << arguments.checkLimit() << " tokens per tree" << endl;
-	else if(arguments.checkLimit == 0)
-		cout << "Verification set with unlimited token count per tree" << endl;
-	cout << "Trained on " << trainTreeCount << " trees" << endl;
-	cout << "Verified on " << checkTreeCount << " trees" << endl;
-	cout << "Final feature vector size: " << featureVector.size() << endl;
+	if(!quiet)
+	{
+		cout << "Trained with " << arguments.iterations() << " iterations " << (arguments.permutate ? "with" : "without") << " permutations";
+		if(arguments.permutate)
+			cout << " using seed " << arguments.seed;
+		if(arguments.useGeneralTags)
+			cout << " with general tags";
+		cout << endl;
+		if(arguments.trainLimit > 0)
+			cout << "Training set limited to " << arguments.trainLimit() << " tokens per tree" << endl;
+		else if(arguments.trainLimit == 0)
+			cout << "Training set with unlimited token count per tree" << endl;
+		if(verify && arguments.checkLimit > 0)
+			cout << "Verification set limited to " << arguments.checkLimit() << " tokens per tree" << endl;
+		else if(verify && arguments.checkLimit == 0)
+			cout << "Verification set with unlimited token count per tree" << endl;
+		cout << "Trained on " << trainTreeCount << " trees" << endl;
+		if(verify)
+			cout << "Verified on " << checkTreeCount << " trees" << endl;
+		cout << "Final feature vector size: " << featureVector.size() << endl;
 #if USE_MAP != STD_MAP
-	cout << "Feature vector bucket count: " << featureVector.capacity() << endl;
-	cout << "Final feature vector collision count: " << featureVector.collisions() << endl;
+		cout << "Feature vector bucket count: " << featureVector.capacity() << endl;
+		cout << "Final feature vector collision count: " << featureVector.collisions() << endl;
 #endif
-	cout << "Identificator map size: " << arguments.getIDMap().size() << endl;
-	cout << "Training time: ";
-	outputDuration(trainTime);
-	cout << endl;
-	cout << "Verification time: ";
-	outputDuration(checkTime);
-	cout << endl;
-	cout << "Total time: ";
-	outputDuration(trainTime + checkTime);
-	cout << endl;
+		cout << "Identificator map size: " << arguments.getIDMap().size() << endl;
+		cout << "Training time: ";
+		outputDuration(trainTime);
+		cout << endl;
+		if(verify)
+		{
+			cout << "Verification time: ";
+			outputDuration(checkTime);
+			cout << endl;
+		}
+		cout << "Total time: ";
+		outputDuration(trainTime + checkTime);
+		cout << endl;
+	}
 }
 
 
@@ -674,4 +718,278 @@ void TrainCases::summary()
 	cout << "Total time: ";
 	outputDuration(totalTrainTime + totalCheckTime);
 	cout << endl;
+}
+
+bool train(TrainCase::Arguments& arguments, FeatureVector& featureVector, IndexMap& idMap, streams& istreams)
+{
+	Trees trees(idMap);
+
+	// vispirms ielasa no visām straumēm
+	while(streams::stream& stream = istreams.next())
+	{
+		while(stream)
+			stream >> trees;
+	}
+
+	// pēc tam var sākt treniņus
+
+	int start = 0;
+	int stop = trees.size();
+	int limit = arguments.trainLimit;
+	int T = arguments.iterations;
+	bool allowNonProjective = arguments.allowTrainNonProjective;
+	bool permutate = arguments.permutate;
+	bool quiet = arguments.quiet;
+
+	// // rezervē iezīmju vektoram atmiņu, būtiski optimālai ātrdarbībai
+	// cout << "Allocate memory for feature vector ... ";
+	// cout.flush();
+	// featureVector.reserve(arguments.featureVectorSize);
+	// cout << "ok" << endl;
+
+	// izgūst visu iezīmju precedentus treniņu kokos
+	if(!quiet)
+	{
+		cout << "Extracting initial features ... ";
+		cout.flush();
+	}
+	trees.extractFeatures(featureVector);
+	if(!quiet)
+		cout << "ok" << endl;
+
+#if USE_MAP != STD_MAP
+	if(!quiet)
+	{
+		cout << "Feature vector size: " << featureVector.size() << endl;
+		cout << "Feature vector bucket count: " << featureVector.bucket_count() << endl;
+		cout << "Initial feature vector collisions: " << featureVector.collisions() << endl;
+	}
+#endif
+
+	// limits tiek norādīts derīgajos tokenus: +1 ir dēļ root tokena "*"
+	if(limit > 0)
+		limit++;
+
+	// // ja nav norādīts apstāšanās koks, tad līdz pēdējam
+	// if(stop <= 0)
+	// 	stop = trainTrees.size();
+
+	// w = 0
+	featureVector.zero();
+	// summārais svaru vektors v = 0
+	vector<FeatureVector::Value> v(featureVector.size(), 0);
+
+	// randomizācijas sēkla
+	srand(arguments.seed);
+
+	// koku indeksu saraksti (darbojas kā kartes): linērais un permutētais
+	vector<int> permutated;		// permutated map
+	vector<int> ascending;
+
+	int count = 0;				// koku parsējumu kopskaits
+	int countPerIteration = 0;	// koku (parsējumu) skaits uz iterāciju
+
+	if(!quiet)
+		cout << "Allocate memory for helper feature vectors ... ";
+	// kāds ir aptuvenais iezīmju skaits noparsētā kokā ?
+	FeatureVector treeFV(1000);
+	FeatureVector goldenFV(1000);
+	// FeatureVector treeFV(1572869);
+	// FeatureVector goldenFV(1572869);
+	if(!quiet)
+	{
+		cout << "ok" << endl;
+
+		cout << "Training: " << endl;
+	}
+
+	for(int t=0; t<T; t++)
+	{
+		if(!quiet)
+		{
+			// iterācijas info uz ekrāna
+			if(t) cout << endl;
+			cout << endl;
+			cout << "# [" << t+1 << " / " << T << "] : ";
+		}
+
+		// aizpilda lineāro sarakstu
+		if(t == 0 || permutate)
+		{
+			ascending.clear();
+			for(int i=start; i<stop; i++)
+				ascending.push_back(i);
+		}
+
+		// aizpilda permutēto sarakstu
+		if(permutate)
+		{
+			permutated.clear();
+			while(ascending.size() > 0)
+			{
+				int index = rand() % ascending.size();
+				permutated.push_back(ascending[index]);
+				ascending.erase(ascending.begin()+index);
+			}
+		}
+
+		// permutētais saraksts, vai sakārtotais-augošais
+		vector<int>& list = permutate ? permutated : ascending;
+
+		countPerIteration = 0;	// izmantoto koku skaits uz vienu iterāciju
+
+		int sz = list.size();
+		int n = 0;
+		int parts = 20;
+		int part = 0;
+		int nextgoal = sz / parts;
+
+		for(int j : list)
+		{
+			n++;
+
+			// zelta standarts
+			const Tokens& golden = trees[j];
+
+			// neprojektīvs
+			if(!allowNonProjective && !golden.projective())
+			{
+				if(!quiet)
+					cout << "N";
+				continue;
+			}
+
+			// izmērs pārāk liels
+			if(limit > 0 && golden.size() > limit)
+			{
+				if(!quiet)
+					cout << "!" << golden.size()-1;
+				continue;
+			}
+				
+			// kopija
+			Tokens tree(golden);
+
+			// parsēšanas mēģinājums
+			Timing timing;
+			timing.start();
+			parse(tree, featureVector);
+			timing.stop();
+			double duration = timing;
+
+			if(!quiet)
+			{
+				cout << ".";	// progresa indikātors
+				cout.flush();
+			}
+
+			// ja koki atšķiras
+			if(tree != golden)
+			{
+				// FeatureVector treeFV(1572869);
+				// FeatureVector goldenFV(1572869);
+				treeFV.clear();
+				goldenFV.clear();
+				tree.extractFeatures(treeFV);
+				golden.extractFeatures(goldenFV);
+
+				// pieskaita iezīmes no golden
+				{
+					const FeatureVector::Features& features = goldenFV.features();
+					const FeatureVector::Weights& weights = goldenFV.weights();
+					for(int i=0, size = features.size(); i<size; i++)
+						featureVector[features[i]] += weights[i];
+				}
+
+				// atņem iezīmes no parses mēģinājuma
+				{
+					const FeatureVector::Features& features = treeFV.features();
+					const FeatureVector::Weights& weights = treeFV.weights();
+					for(int i=0, size = features.size(); i<size; i++)
+						featureVector[features[i]] -= weights[i];
+				}
+			}
+
+			// ja ir notikušas izmēru izmaiņas starp w un v
+			if(featureVector.size() > v.size())
+				for(int k=0, size=featureVector.size()-v.size(); k<size; k++)
+					v.push_back(0);
+
+			// v += w
+			for(int k=0, size=featureVector.size(); k<size; k++)
+				v[k] += featureVector[k];
+
+			count++;
+			countPerIteration++;
+
+			if(n >= nextgoal)
+			{
+				part++;
+				if(!quiet)
+					cout << " (" << (int)(100*part/parts) << "%) "; // [5%]
+				nextgoal = (sz*(part+1))/parts;
+			}
+		}
+	}
+
+	// vidējošana: w = v / T*n
+	// double koef = 1.0/(double)count;
+	// for(int k=0, size=featureVector.size(); k<size; k++)
+	// 	featureVector[k] = v[k] * koef;
+	
+	for(int k=0, size=featureVector.size(); k<size; k++)
+		featureVector[k] = v[k];
+
+	featureVector.save("fvnew");
+	// trainTreeCount = countPerIteration;
+
+	if(!quiet)
+		cout << " done" << endl;
+
+	return true;
+}
+
+bool parse(TrainCase::Arguments& arguments, const FeatureVector& featureVector, const IndexMap& idMap_,
+		streams& istreams, std::basic_ostream<char>& ostream)
+{
+	// pa vienam kokam no ievadstraumes, parsē, rezultāts izvadstraumē
+	while(streams::stream& stream = istreams.next())
+	{
+		while(stream)
+		{
+			// index apakškarte, kuru var pārvietot arī uz parent scope, ja tas palielina ātrdarbību
+			// doma ir tāda, ka katrs ievadkoks ir neatkarīgs no otra, tāpēc kad viens ir pabeigts,
+			// tad nav vajadzīgs uzglabāt nākamā koka identifikātoru informāciju, rezultātā
+			// identifikātoru skaits nepalielinās un nav risks potenciālam overflow
+			IndexMap idMap(idMap_);
+
+			Tokens tree(idMap);
+
+			try
+			{
+				stream >> tree;
+
+				if(tree)
+					parse(tree, featureVector);
+
+				ostream << tree;
+			}
+			catch(exception& e)
+			{
+				cerr << "error: " << e.what() << endl;
+
+				// vēl ir jāpabeidz ielasīt līdz tukšajai rindiņai
+				string line;
+				while(getline(stream, line))
+				{
+					if(line.size() == 0 || line == "\n")
+						break;
+				}
+
+				ostream << endl;	// tukšs rezultāts
+			}
+		}
+	}
+
+	return true;
 }

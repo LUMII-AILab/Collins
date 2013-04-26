@@ -90,6 +90,9 @@ public:
 	byte data[FEATURE_MAX_SIZE];		// zero initialization off, just the first byte (for performance)
 	Feature() { data[0] = 0; }
 
+	byte operator[](const int i) const { return data[i]; }
+	Feature& operator+=(const byte b) { if(data[0] == 0) { data[0] = 2; data[1] = b; } else data[data[0]++] = b; return *this; }
+
 	int size() const { return data[0]; }	// lietderīgo datu izmērs pirmo baitu ieskaitot
 	bool operator==(const struct Feature& o) const { for(int i=0, sz=size(); i<sz; ++i) if(data[i] != o.data[i]) return false; return true; }
 	bool operator!=(const struct Feature& o) const { return !operator==(o); }
@@ -264,18 +267,24 @@ public:
 // #define FV_DEFAULT_SIZE 805306457
 // #define FV_DEFAULT_SIZE 1610612741
 
-	FeatureVector(Index reserveSize = FV_DEFAULT_SIZE) { reserve(reserveSize); }
+	FeatureVector(Index reserveSize, Index reserveMapSize = FV_DEFAULT_SIZE) { reserve(reserveSize, reserveMapSize); }
 
-	void reserve(Index reserve)
+	void reserve(Index reserve, Index reserveMap = FV_DEFAULT_SIZE)
 	{
 #if USE_MAP == DENSE_HASH_MAP
 		_map.set_empty_key(Feature((Feature::word)-1));
 #endif
 #if USE_MAP != STD_MAP
-		_map.rehash(reserve);
+#if USE_MAP != DENSE_HASH_MAP
+		_map.rehash(reserveMap);
 #endif
-		_weights.reserve(reserve);
-		_features.reserve(reserve);
+#endif
+
+		if(reserve > 0)
+		{
+			_weights.reserve(reserve);
+			_features.reserve(reserve);
+		}
 	}
 
 #if USE_MAP == STD_MAP
@@ -365,6 +374,10 @@ public:
 		return it->second;
 	}
 
+	bool save(const std::string& filename) const;
+	bool load(const std::string& filename);
+	bool verify(const std::string& filename);
+
 private:
 
 	// Lai būtu iespēja darboties ar svaru vektoru kā ar vektoru (std::vector),
@@ -390,11 +403,13 @@ private:
 class IndexMap
 {
 public:
+	typedef int ID;
+
 	IndexMap() { primary = NULL; next = 0; }
 	IndexMap(const IndexMap& primaryIndex) { primary = &primaryIndex; next = primary->next; }
 
-	int operator()(const std::string& s) const { return find(s); }
-	int operator()(const std::string& s)
+	ID operator()(const std::string& s) const { return find(s); }
+	ID operator()(const std::string& s)
 	{
 		int r = find(s);
 		if(r != -1)
@@ -404,15 +419,20 @@ public:
 		return next++;
 	}
 
+	bool save(const std::string& filename, bool excludePrimary = false) const;
+	bool load(const std::string& filename);
+	bool verify(const std::string& filename);
+
 	int size() const { return map.size(); }
+	void print() const;
 
 private:
 
-	int find(const std::string& s) const
+	ID find(const std::string& s) const
 	{
 		if(primary)
 		{
-			int r = (*primary)(s);
+			ID r = (*primary)(s);
 
 			if(r != -1)
 				return r;
@@ -426,9 +446,9 @@ private:
 		return it->second;
 	}
 
-	int next;
+	ID next;
 	const IndexMap* primary;
-	typedef std::unordered_map<std::string, int> Map;
+	typedef std::unordered_map<std::string, ID> Map;
 	// typedef std::map<std::string, int> Map;
 	Map map;
 };

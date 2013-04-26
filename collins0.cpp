@@ -988,6 +988,79 @@ void Tokens::add(const string& word, const string& lemma, const string& tag, con
 	// TODO: more here
 }
 
+bool Tokens::add(const string& line, bool useGeneralTags)
+{
+	if(line.size() == 0 || line == "\r")
+		return false;
+
+	typedef boost::split_iterator<string::const_iterator> SplitIterator;
+
+	SplitIterator end, part = make_split_iterator(line, boost::first_finder("\t", boost::is_equal()));
+
+	int index, parentIndex = -1;
+	string word, lemma, tag, features;
+	set<string> tags;
+
+	// try
+	// {
+	index = stoi(boost::copy_range<std::string>(*part++));
+	word = boost::copy_range<string>(*part++);
+	lemma = boost::copy_range<string>(*part++);
+	if(useGeneralTags)
+	{
+		tag = boost::copy_range<string>(*part++);
+		part++;		// skip full POS tag
+	}
+	else
+	{
+		part++;		// skip general POS tag
+		tag = boost::copy_range<string>(*part++);
+	}
+	if(part != end)
+		features = boost::copy_range<string>(*part++);
+	if(part != end)
+	{
+		string pi = boost::copy_range<std::string>(*part++);
+		if(!pi.empty())
+			parentIndex = stoi(pi);
+	}
+	// }
+	// catch(exception& e)
+	// {
+	// 	cerr << "error: " << e.what() << endl;
+	// 	return false;
+	// }
+
+	// transform(word.begin(), word.end(), word.begin(), (int (*)(int))tolower);
+	// cout << word << endl;
+
+	tags.clear();
+	tags.emplace(tag);
+
+	for(SplitIterator it = make_split_iterator((const string&)features, boost::first_finder("|", boost::is_equal())),
+			end = SplitIterator(); it!=end; ++it)
+	{
+		const string& part = boost::copy_range<string>(*it);		// valīda reference ?
+
+		size_t endpos;
+		if((endpos = part.find("-LV-TAG")) != string::npos)
+		{
+			// ja vajag izšķirt
+			// if(part.find("-PREV") != string::npos)
+			// else if(part.find("-NEXT") != string::npos)
+			// else
+
+			// cout << string(part, 0, endpos);
+			// cout << part << " ";
+			tags.emplace(part, 0, endpos);
+		}
+	}
+
+	add(word, lemma, tag, tags, parentIndex);
+
+	return true;
+}
+
 // Izgūst features no lokālajiem tokeniem.
 bool Tokens::extractFeatures(FeatureVector& targetFeatureVector) const
 {
@@ -1173,10 +1246,6 @@ bool Trees::readCoNLL(IndexMap& idMap, const string& filename, bool useGeneralTa
 
 	string line;
 	string col;
-	int index, parentIndex;
-	string word, lemma, tag, dummy;
-	// Token::Tags tags;
-	set<string> tags;
 
 	Tokens tokens(idMap);
 	tokens.reserve(500);	// diez vai būs teikumi ar vairāk kā 500 tokeniem
@@ -1189,50 +1258,7 @@ bool Trees::readCoNLL(IndexMap& idMap, const string& filename, bool useGeneralTa
 	{
 		if(line.size() > 2)
 		{
-			SplitIterator part = make_split_iterator(line, boost::first_finder("\t", boost::is_equal()));
-
-			index = stoi(boost::copy_range<std::string>(*part++));
-			word = boost::copy_range<string>(*part++);
-			lemma = boost::copy_range<string>(*part++);
-			if(useGeneralTags)
-			{
-				tag = boost::copy_range<string>(*part++);
-				part++;		// skip full POS tag
-			}
-			else
-			{
-				part++;		// skip general POS tag
-				tag = boost::copy_range<string>(*part++);
-			}
-			dummy = boost::copy_range<string>(*part++);
-			parentIndex = stoi(boost::copy_range<std::string>(*part++));
-
-			// transform(word.begin(), word.end(), word.begin(), (int (*)(int))tolower);
-			// cout << word << endl;
-
-			tags.clear();
-			tags.emplace(tag);
-
-			for(SplitIterator it = make_split_iterator(dummy, boost::first_finder("|", boost::is_equal())),
-					end = boost::split_iterator<string::iterator>(); it!=end; ++it)
-			{
-				const string& part = boost::copy_range<string>(*it);		// valīda reference ?
-
-				size_t endpos;
-				if((endpos = part.find("-LV-TAG")) != string::npos)
-				{
-					// ja vajag izšķirt
-					// if(part.find("-PREV") != string::npos)
-					// else if(part.find("-NEXT") != string::npos)
-					// else
-
-					// cout << string(part, 0, endpos);
-					// cout << part << " ";
-					tags.emplace(part, 0, endpos);
-				}
-			}
-
-			tokens.add(word, lemma, tag, tags, parentIndex);
+			tokens.add(line, useGeneralTags);
 		}
 		else if(tokens.size() > 1)
 		{
@@ -1251,6 +1277,47 @@ bool Trees::readCoNLL(IndexMap& idMap, const string& filename, bool useGeneralTa
 	return true;
 }
 
+void Tokens::output(std::ostream& stream) const
+{
+	for(int i=1, sz=tokens.size(); i<sz; ++i)
+	{
+		const Token& token = tokens[i];
+		stream << i;
+		stream << "\t";
+		stream << token.word();
+		stream << "\t";
+		stream << token.lemma();
+		stream << "\t";
+		stream << token.fullTag()[0];		// coarse-grained tag
+		stream << "\t";
+		stream << token.fullTag();
+		stream << "\t";
+		stream << "_";		// nav features saglabātas
+		stream << "\t";
+		stream << token.parentIndex();
+		stream << endl;
+	}
+	stream << endl;
+}
+
+ostream& operator<<(ostream& stream, const Tokens& tokens) { tokens.output(stream); return stream; }
+istream& operator>>(istream& stream, Tokens& tokens)
+{
+	string line;
+	while(getline(stream, line))
+	{
+		if(line.size() > 0 && line != "\r")
+		{
+			if(!tokens.add(line))
+				return stream;
+		}
+		else
+			break;
+	}
+	tokens.link();
+	return stream;
+}
+
 // Iet cauri visiem kokiem un izgūst iezīmes.
 void Trees::extractFeatures(FeatureVector& targetFeatureVector)
 {
@@ -1267,6 +1334,22 @@ void Trees::print() const
 		cout << "----------" << endl;
 		tokens.print();
 	}
+}
+
+ostream& operator<<(ostream& stream, const Trees& trees)
+{
+	for(const Tokens& tokens : trees)
+		stream << tokens;
+	return stream;
+}
+
+istream& operator>>(istream& stream, Trees& trees)
+{
+	trees.trees.emplace_back(trees.idMap);
+	stream >> trees.trees.back();
+	if(trees.trees.back().size() == 1)
+		trees.trees.pop_back();
+	return stream;
 }
 
 void Span::print(int level) const

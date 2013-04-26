@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <memory>
 
 #include "features.hpp"
 
@@ -124,10 +125,11 @@ class Tokens
 {
 public:
 
-	Tokens(IndexMap& identificatorMap) : idMap(identificatorMap) {}
+	Tokens(IndexMap& identificatorMap) : idMap(identificatorMap) { addRoot(); }
 	// Tokens(const Tokens& s) : idMap(s.idMap) { tokens = s.tokens; }
 
 	void add(const std::string& word, const std::string& lemma, const std::string& tag, const std::set<std::string>& tags, int parentIndex);
+	bool add(const std::string& line, bool useGeneralTags = false);
 	void reserve(int size) { tokens.reserve(size); }
 	void clear() { tokens.clear(); addRoot(); /* status = Unchecked; */ }
 
@@ -146,6 +148,9 @@ public:
 	const Token& operator[](int index) const { return tokens[index]; }
 	int size() const { return tokens.size(); }
 
+	bool emtpy() const { return tokens.size() <= 1; }
+	operator bool() const { return tokens.size() > 1; }
+
 	void print() const;
 
 	bool link();							// link tokens with valid parent indexes
@@ -157,6 +162,8 @@ public:
 	bool projective() const;
 	bool check() const;
 
+	void output(std::ostream& stream) const;
+
 private:
 
 	IndexMap& idMap;
@@ -167,6 +174,8 @@ private:
 	std::vector<Token> tokens;
 };
 
+std::ostream& operator<<(std::ostream& stream, const Tokens& tokens);
+std::istream& operator>>(std::istream& stream, Tokens& tokens);
 
 void getFeatures(std::vector<Feature>& features, const Token* gtoken, const Token* htoken, const Token* mtoken,
 		bool degenerateH = false, bool degenerateInnerM = false, bool degenerateOuterM = false);
@@ -180,10 +189,13 @@ class Trees
 {
 public:
 
+	// TODO: te būtu pareizāk izmantot shared_ptr, lai nebūtu viengs galvenais īpašnieks
+
 	// Trees(IndexMap& identificatorMap) : idMap(identificatorMap) {}
-	Trees() {}
+	Trees() : idMap(*(new IndexMap())) { _idMap.reset(&idMap); }
+	Trees(IndexMap& indexMap) : idMap(indexMap) {}
 	// Copy konstruktors ar unlink iespēju
-	Trees(const Trees& s, bool unlink = false) : trees(s.trees) { if(unlink) for(Tokens& tokens : trees) tokens.unlink(); }
+	Trees(const Trees& s, bool unlink = false) : trees(s.trees), idMap(s.idMap) { if(unlink) for(Tokens& tokens : trees) tokens.unlink(); }
 
 	bool readCoNLL(IndexMap& idMap, const std::string& filename, bool useGeneralTags = false);
 
@@ -195,11 +207,22 @@ public:
 	void print() const;
 
 	// IndexMap& idMap;
+	
+	std::vector<Tokens>::const_iterator begin() const { return trees.cbegin(); }
+	std::vector<Tokens>::const_iterator end() const { return trees.cend(); }
+
+	IndexMap& idMap;
 
 private:
 
 	std::vector<Tokens> trees;
+	std::shared_ptr<IndexMap> _idMap;
+
+	friend std::istream& operator>>(std::istream& stream, Trees& trees);
 };
+
+std::ostream& operator<<(std::ostream& stream, const Trees& trees);
+std::istream& operator>>(std::istream& stream, Trees& trees);
 
 void parse(Tokens& tokens, const FeatureVector& features);
 

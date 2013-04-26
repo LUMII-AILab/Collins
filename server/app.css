@@ -1,0 +1,80 @@
+
+#main {
+	margin: 10px;
+}
+
+.input-conll {
+	height: 100px;
+}
+
+table.conll-table {
+	border: 1px solid #aaa;
+	border-collapse: collapse;
+}
+
+table.conll-table th {
+	text-align: center;
+	vertical-align: middle;
+	border: 1px solid #aaa;
+	padding: 4px 8px;
+	background-color: #ddd;
+}
+
+table.conll-table td {
+	max-width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-align: center;
+	vertical-align: middle;
+	border: 1px solid #aaa;
+	padding: 4px 8px;
+	position: relative;
+}
+
+table.conll-table tr:hover {
+	background-color: #eee;
+}
+
+table.conll-table td:hover {
+	background-color: #ccc;
+}
+
+table.conll-table input.edit-cell {
+	display: inline-block;
+	position: absolute;
+	top: 0px;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	width: auto;
+	height: auto;
+	margin-bottom: 0px;
+}
+
+#space {
+    /* width:1200px; */
+    width:98%;
+    height:600px;
+    /* height:500px; */
+    position:absolute;
+    /* top:0; */
+    border: 1px solid black;
+
+
+	font-family: Times;
+	font-size: 16px;
+	line-height: normal;
+
+    /* overflow: hidden; */
+
+    cursor: default;
+
+    /* disable selection */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
