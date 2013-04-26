@@ -39,4 +39,5 @@ def static(path='index.html'):
 conllizator = CoNLLizator("../LVTagger/morphotagger.sh")
 parser = Parser(command="build/collins", args="--load --stdin --stdout -q --basedir=build")
 
-run(host='localhost', port=8080, debug=True)
+# run(host='localhost', port=8080, debug=True)
+run(host='0.0.0.0', port=8080, debug=True)
