@@ -17,6 +17,8 @@
 	<!-- <script src="libs/ng&#45;grid/ng&#45;grid&#45;2.0.4.debug.js"></script> -->
 	<script src="libs/jit/jit.js"></script>
 
+	<script src="libs/download.js"></script>
+
 	<!-- <script src="https://maps.google.com/maps/api/js?sensor=false&#38;language=lv"></script> -->
 
 	<link rel="stylesheet" href="libs/normalize/normalize.css">
@@ -42,72 +44,96 @@
 		<br/>
 		<button class="btn btn-primary" ng-click="getCoNLL()">1. CoNLL</button>
 		<button class="btn btn-primary" ng-click="parse()">2. Parse</button>
-		<button class="btn btn-primary" ng-click="showTree()">3. Tree</button>
 		<br/>
 		<br/>
 		<tabs>
-			<pane heading="Raw Input CoNLL" active="selectedTab.rawInput">
-				<button class="btn btn-primary" ng-click="acceptInputRaw()">Accept</button>
-				<br/>
-				<br/>
-				<textarea cols="60" rows="10" style="width: 98%; height: 200px;" ng-model="inputCoNLL.raw"></textarea>
-			</pane>
+			<!-- <pane heading="Raw Input CoNLL" active="selectedTab.rawInput"> -->
+			<!-- 	<button class="btn btn&#45;primary" ng&#45;click="acceptInputRaw()">Accept</button> -->
+			<!-- 	<br/> -->
+			<!-- 	<br/> -->
+			<!-- 	<textarea cols="60" rows="10" style="width: 98%; height: 200px;" ng&#45;model="inputCoNLL.raw"></textarea> -->
+			<!-- </pane> -->
 			<pane heading="Input CoNLL" active="selectedTab.input">
-				<button class="btn btn-primary" ng-click="acceptInput()">Accept</button>
-				<br/>
-				<br/>
-				<table class="conll-table" style="margin: 10px; position: relative;">
-					<tr>
-						<th>Index</th>
-						<th>Word</th>
-						<th>Lemma</th>
-						<th>Coarse Tag</th>
-						<th>Full Tag</th>
-						<th>Features</th>
-						<th>Parent</th>
-					<tr>
-					<tr ng-repeat="row in inputCoNLL.data">
-						<td ng-bind="row.index" editable="inputCoNLL.editable" class="integer"></td>
-						<td ng-bind="row.word" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.lemma" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.tag0" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.tag" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.features" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.parentIndex" editable="inputCoNLL.editable" class="integer"></td>
-					</tr>
-				</table>
+				<div style="position: relative;">
+					<div style="display: inline-block; width: 60%; position: relative; 0px; vertical-align: top;">
+						<br/>
+						<div style="position: absolute; right: 0px; top: 0px;">
+							<button class="btn" ng-class="{'btn-primary': !state.pasteFocus}" ng-click="showPaste()">Paste from Clipboard &gt;&gt;</button>
+						</div>
+						<br/>
+						<table class="conll-table" style="margin: 10px; position: relative;">
+							<tr>
+								<th>Index</th>
+								<th>Word</th>
+								<th>Lemma</th>
+								<th>Coarse Tag</th>
+								<th>Full Tag</th>
+								<th>Features</th>
+								<th>Parent</th>
+							<tr>
+							<tr ng-repeat="row in inputCoNLL.data">
+								<td ng-bind="row.index" editable="inputCoNLL.editable" class="integer"></td>
+								<td ng-bind="row.word" editable="inputCoNLL.editable"></td>
+								<td ng-bind="row.lemma" editable="inputCoNLL.editable"></td>
+								<td ng-bind="row.tag0" editable="inputCoNLL.editable"></td>
+								<td ng-bind="row.tag" editable="inputCoNLL.editable"></td>
+								<td ng-bind="row.features" editable="inputCoNLL.editable"></td>
+								<td ng-bind="row.parentIndex" editable="inputCoNLL.editable" class="integer"></td>
+							</tr>
+						</table>
+					</div>
+					<div style="display: inline-block; position: relative; width: 38%; margin: 0px;">
+						<textarea focus="state.pasteFocus" ng-show="state.pasteVisible"
+							style="position: relative; width: 98%; height: 200px; resize: vertical;"
+							select-on-focus ng-model="inputCoNLL.raw" ng-blur="hidePaste()"></textarea>
+					</div>
+				</div>
 			</pane>
 			<pane heading="Output CoNLL" active="selectedTab.output">
-				<button class="btn btn-primary" ng-click="acceptOutput()">Accept</button>
-				<br/>
-				<br/>
-				<table class="conll-table" style="margin: 10px; position: relative;">
-					<tr>
-						<th>Index</th>
-						<th>Word</th>
-						<th>Lemma</th>
-						<th>Coarse Tag</th>
-						<th>Full Tag</th>
-						<th>Features</th>
-						<th>Parent</th>
-					<tr>
-					<tr ng-repeat="row in outputCoNLL.data">
-						<td ng-bind="row.index" editable="inputCoNLL.editable" class="integer"></td>
-						<td ng-bind="row.word" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.lemma" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.tag0" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.tag" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.features" editable="inputCoNLL.editable"></td>
-						<td ng-bind="row.parentIndex" editable="inputCoNLL.editable" class="integer"></td>
-					</tr>
-				</table>
+				<div style="position: relative;">
+					<div style="display: inline-block; width: 60%; position: relative; 0px; vertical-align: top;">
+						<br/>
+						<div style="position: absolute; right: 0px; top: 0px;">
+							<button class="btn btn-primary" ng-click="downloadOutput()" ng-disabled="outputDisabled()">Download .CoNLL</button>
+							&nbsp;&nbsp;
+							<button class="btn" ng-class="{'btn-primary': !state.copyFocus}"
+								ng-click="showCopy()" ng-disabled="outputDisabled()">Copy to Clipboard &gt;&gt;</button>
+						</div>
+						<br/>
+						<table class="conll-table" style="margin: 10px; position: relative;">
+							<tr>
+								<th>Index</th>
+								<th>Word</th>
+								<th>Lemma</th>
+								<th>Coarse Tag</th>
+								<th>Full Tag</th>
+								<th>Features</th>
+								<th>Parent</th>
+							<tr>
+							<tr ng-repeat="row in outputCoNLL.data">
+								<td ng-bind="row.index" editable="outputCoNLL.editable" class="integer"></td>
+								<td ng-bind="row.word" editable="outputCoNLL.editable"></td>
+								<td ng-bind="row.lemma" editable="outputCoNLL.editable"></td>
+								<td ng-bind="row.tag0" editable="outputCoNLL.editable"></td>
+								<td ng-bind="row.tag" editable="outputCoNLL.editable"></td>
+								<td ng-bind="row.features" editable="outputCoNLL.editable"></td>
+								<td ng-bind="row.parentIndex" editable="outputCoNLL.editable" class="integer"></td>
+							</tr>
+						</table>
+					</div>
+					<div style="display: inline-block; position: relative; width: 38%; margin: 0px;">
+						<textarea focus="state.copyFocus" ng-show="state.copyVisible"
+							style="position: relative; width: 98%; height: 200px; resize: vertical;"
+							select-on-focus ng-model="outputCoNLL.raw" ng-blur="hideCopy()" readonly></textarea>
+					</div>
+				</div>
 			</pane>
-			<pane heading="Raw Output CoNLL" active="selectedTab.rawOutput">
-				<button class="btn btn-primary" ng-click="acceptOutputRaw()">Accept</button>
-				<br/>
-				<br/>
-				<textarea cols="60" rows="10" style="width: 98%; height: 200px;" ng-model="outputCoNLL.raw"></textarea>
-			</pane>
+			<!-- <pane heading="Raw Output CoNLL" active="selectedTab.rawOutput"> -->
+			<!-- 	<button class="btn btn&#45;primary" ng&#45;click="acceptOutputRaw()">Accept</button> -->
+			<!-- 	<br/> -->
+			<!-- 	<br/> -->
+			<!-- 	<textarea cols="60" rows="10" style="width: 98%; height: 200px;"></textarea> -->
+			<!-- </pane> -->
 			<pane heading="Tree" active="selectedTab.tree">
 				<div id="space"></div>
 			</pane>

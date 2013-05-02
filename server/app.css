@@ -7,9 +7,29 @@
 	height: 100px;
 }
 
+ul.nav.nav-tabs {
+    /* disable selection */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 table.conll-table {
 	border: 1px solid #aaa;
 	border-collapse: collapse;
+
+	cursor: default;
+
+    /* disable selection */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 table.conll-table th {
@@ -29,6 +49,7 @@ table.conll-table td {
 	border: 1px solid #aaa;
 	padding: 4px 8px;
 	position: relative;
+	white-space: nowrap;
 }
 
 table.conll-table tr:hover {
@@ -52,14 +73,13 @@ table.conll-table input.edit-cell {
 }
 
 #space {
-    /* width:1200px; */
-    width:98%;
-    height:600px;
-    /* height:500px; */
-    position:absolute;
-    /* top:0; */
-    border: 1px solid black;
-
+    /* width: 1200px; */
+    width: 98%;
+    height: 600px;
+    /* height: 500px; */
+    position: absolute;
+    /* top: 0; */
+    border: 1px solid #aaa;
 
 	font-family: Times;
 	font-size: 16px;

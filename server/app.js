@@ -38,7 +38,7 @@ app.directive('dropzone', function () {
 });
 
 
-app.directive('editable', function () {
+app.directive('editable', function ($parse) {
 	return {
 		restrict: 'A',
 		scope: true,
@@ -57,7 +57,8 @@ app.directive('editable', function () {
 				edit.focus();
 				edit.focusout(function () {
 					// dirty hack
-					var val = edit.val().replace('"', '\\"');
+					// var val = edit.val().replace('"', '\\"');
+					var val = edit.val();
 					if(element.hasClass('integer'))
 					{
 						// http://www.texotela.co.uk/code/jquery/numeric/
@@ -66,8 +67,16 @@ app.directive('editable', function () {
 						if(isNaN(val))
 							val = 0;
 					}
+					// old way (bad)
 					// console.log(attrs.ngBind + '="' + edit.val().replace('"', '\\"') + '"');
-					scope.$apply(attrs.ngBind + '="' + val + '"');
+					// scope.$apply(attrs.ngBind + '="' + val + '"');
+					// https://groups.google.com/forum/?fromgroups=#!searchin/angular/directive$20two$20binding$20parent$20without$20isolate/angular/p6TkKUmXOhA/ToqD2lK3bawJ
+					// https://groups.google.com/forum/#!topic/angular/yI-iMUFBU6s/discussion
+					// http://docs.angularjs.org/api/ng.$parse
+					scope.$apply(function () {
+						$parse(attrs.ngBind).assign(scope, val);
+					});
+					
 					edit.remove();
 				});
 				edit.keyup(function (e) {
@@ -84,15 +93,65 @@ app.directive('editable', function () {
 	};
 });
 
-app.directive('focus', function ($timeout) {
+app.directive('focus', function ($timeout, $parse) {
 	return {
 		restrict: 'A',
 		link: function (scope, element, attrs) {
-			var enable = scope.$eval(attrs.focus);
-			if(enable === undefined || enable)
+			// var enable = scope.$eval(attrs.focus);
+			if(attrs.focus === undefined)
 				$timeout(function () {
 					element[0].focus();
-				}, 100)
+				}, 100);
+			else
+			{
+				// var preventEvent = false;
+				scope.$watch(attrs.focus, function (value) {
+					// if(preventEvent) return;
+					$timeout(function () {
+						if(value) element[0].focus();
+						else element[0].blur();
+					}, 0);
+					// preventEvent = false;
+				});
+				element.focusin(function () {
+					if(scope.$root.$$phase) return;
+					scope.$apply(function () {
+						// preventEvent = true;
+						$parse(attrs.focus).assign(scope, true);
+					});
+				});
+				element.focusout(function () {
+					if(scope.$root.$$phase) return;
+					scope.$apply(function () {
+						// preventEvent = true;
+						$parse(attrs.focus).assign(scope, false);
+					});
+				});
+			}
+		}
+	};
+});
+
+app.directive('selectOnFocus', function () {
+	return function (scope, element, attrs) {
+		element.focusin(function () {
+			element.select();
+		});
+	};
+});
+
+// http://job-blog.bullgare.ru/2013/01/%D0%B4%D0%B8%D1%80%D0%B5%D0%BA%D1%82%D0%B8%D0%B2%D1%8B-%D0%B4%D0%BB%D1%8F-angular-js/
+app.directive('ngBlur', function (/* $parse */) {
+	return {
+		restrict: 'A',
+		link: function postLink(scope, element, attrs) {
+			element.bind('blur', function () {
+				scope.$apply(function ($scope) {
+					// $parse(attrs.ngBlur)(scope, {value: element.val()});	// manuāli
+					scope.$eval(attrs.ngBlur, {value: element.val()});
+				});
+				// scope.$apply(attrs.ngBlur)
+			});
 		}
 	};
 });
@@ -144,6 +203,9 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 		$scope.selectedTab[tab] = true;
 	};
 
+	$scope.outputDisabled = function () {
+		return !$scope.outputCoNLL.data || $scope.outputCoNLL.data.length == 0;
+	};
 	$scope.selectedTab = { rawInput: false, input: true, output: false, rawOutput: false, tree: false };
 	$scope.inputCoNLL = { editable: true };
 	$scope.outputCoNLL = { editable: true };
@@ -159,8 +221,9 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 		// selectTab('input');
 	};
 
-	$scope.acceptOutput = function () {
+	$scope.downloadOutput = function () {
 		$scope.outputCoNLL.raw = genCoNLL($scope.outputCoNLL.data);
+		showSave($scope.outputCoNLL.raw, 'download.conll', 'application/json');
 		// selectTab('output');
 	};
 
@@ -184,7 +247,7 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 	$scope.parse = function () {
 		// $scope.inputCoNLL.editable = false;
 		var conll = genCoNLL($scope.inputCoNLL.data);
-		// console.log(conll);
+		// console.log('parse sent:', conll);
 		selectTab('output');
 		$http.post('rest/parse', conll).success(function (data, status, headers, config) {
 			// console.log('success:', data);
@@ -195,39 +258,23 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 		});
 	};
 
-	$scope.conllToJSON = function () {
-		$http.post('rest/conll2json', $scope.outputCoNLL.raw).success(function (data, status, headers, config) {
+	$scope.$watch('selectedTab.tree', function (value) {
+
+		if(!value) return;
+
+		var data = createTree($scope.outputCoNLL.data);
+
+		// $http.post('rest/conll2json', $scope.outputCoNLL.raw).success(function (data, status, headers, config) {
 		// $http.get('pretty.json').success(function (data, status, headers, config) {
 			// data = data[1].root;
 			// console.log('success:', data);
+			// console.log(data);
 			$scope.outputCoNLL.json = data;
-			if(!tree)
-			{
-				$timeout(function () {
-					tree = initTree();
-					tree.loadJSON($scope.outputCoNLL.json);
-					tree.compute();
-					tree.onClick(tree.root, {
-						Move: {
-							offsetY: 200
-						}
-					});
-				}, 300);
-			}
-			else
-			{
-				tree.loadJSON($scope.outputCoNLL.json);
-				tree.compute();
-				tree.onClick(tree.root, {
-					Move: {
-						offsetY: 200
-					}
-				});
-			}
-		}).error(function (data, status, headers, config) {
-			console.log('error:', data);
-		});
-	};
+			setTree(data);
+		// }).error(function (data, status, headers, config) {
+		// 	console.log('error:', data);
+		// });
+	});
 
 	$scope.showTree = function () {
 		selectTab('tree');
@@ -240,10 +287,108 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 		console.log('drop:', event);
 	};
 
+	$scope.state = { copyFocus: false, copyVisible: false, pasteFocus: false, pasteVisible: false };
+
+	$scope.showCopy = function () {
+		if(!$scope.state.copyVisible)
+		{
+			$scope.outputCoNLL.raw = genCoNLL($scope.outputCoNLL.data);
+			$scope.state.copyFocus = true;
+			$scope.state.copyVisible = true;
+		}
+	};
+
+	$scope.hideCopy = function () {
+		$timeout(function () {
+			$scope.state.copyVisible = false;
+		}, 100);
+	};
+
+	$scope.showPaste = function () {
+		if(!$scope.state.pasteVisible)
+		{
+			$scope.outputCoNLL.raw = genCoNLL($scope.outputCoNLL.data);
+			$scope.state.pasteFocus = true;
+			$scope.state.pasteVisible = true;
+		}
+	};
+
+	$scope.hidePaste = function () {
+		$timeout(function () {
+			$scope.state.pasteVisible = false;
+			$scope.inputCoNLL.data = parseCoNLL($scope.inputCoNLL.raw);
+		}, 100);
+	};
+
+
+	var createTree = function (data)
+	{
+		var tree = [];
+
+		var root = {
+			id: 0,
+			name: '*',
+			data: {
+				lemma: '*',
+				tag: 'R',
+				parentIndex: -1
+			},
+			children: []
+		};
+
+		tree.push(root);
+
+		for(var i in data)
+		{
+			var node = data[i];
+			tree.push({
+				id: node.index,
+				name: node.word,
+				data: {
+					lemma: node.lemma,
+					tag: node.tag,
+					parentIndex: node.parentIndex
+				},
+				children: []
+			});
+		}
+
+		for(var i in tree)
+		{
+			var child = tree[i];
+			if(child.data.parentIndex === -1)
+				continue;
+
+			tree[child.data.parentIndex].children.push(child);
+		}
+
+		return root;
+	};
+
+	var setTree = function (data) {
+		if(!tree)
+		{
+			$timeout(function () {
+				tree = initTree();
+				setTree(data);
+			}, 300);
+		}
+		else
+		{
+			tree.loadJSON(data);
+			tree.compute();
+			tree.onClick(tree.root, {
+				Move: {
+					offsetY: 200
+				}
+			});
+		}
+	};
+
 
 	var tree;
 	var initTree = function () {
-		return new $jit.ST({
+		var tmp = new $jit.ST({
 			injectInto: 'space',
 			orientation: 'top',
 			//Add node/edge styles
@@ -317,6 +462,7 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 				// };
 			}
 		});
+		return tmp;
 	};
 });
 
