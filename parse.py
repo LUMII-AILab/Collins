@@ -71,6 +71,9 @@ class Parser(object):
 
         text = text.strip()
 
+        if not text:
+            return ''
+
         # if type(text) == str:
         #     text = text.decode('utf-8')
         if type(text) == unicode:

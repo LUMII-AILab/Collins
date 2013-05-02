@@ -17,6 +17,16 @@ ul.nav.nav-tabs {
     user-select: none;
 }
 
+button.btn {
+    /* disable selection */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 table.conll-table {
 	border: 1px solid #aaa;
 	border-collapse: collapse;

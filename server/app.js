@@ -156,6 +156,54 @@ app.directive('ngBlur', function (/* $parse */) {
 	};
 });
 
+app.directive('spin', function () {
+	return {
+		restrict: 'E',
+		replace: true,
+		require: '?ngModel',
+		transclude: true,
+		template: '<div style="position: relative;"></div>',
+		link: function (scope, element, attrs, ngModel) {
+
+			var opts = {
+				lines: 13, // The number of lines to draw
+				length: 5, // The length of each line
+				width: 2, // The line thickness
+				radius: 3, // The radius of the inner circle
+				corners: 1, // Corner roundness (0..1)
+				rotate: 0, // The rotation offset
+				direction: 1, // 1: clockwise, -1: counterclockwise
+				color: '#000', // #rgb or #rrggbb
+				speed: 1, // Rounds per second
+				trail: 60, // Afterglow percentage
+				shadow: false, // Whether to render a shadow
+				hwaccel: false, // Whether to use hardware acceleration
+				className: 'spinner', // The CSS class to assign to the spinner
+				zIndex: 2e9, // The z-index (defaults to 2000000000)
+				top: 'auto', // Top position relative to parent in px
+				left: 'auto' // Left position relative to parent in px
+			};
+
+			// override options
+			angular.extend(opts, scope.$eval(attrs.options));
+
+			var spinner = new Spinner(opts);
+			if(!ngModel)
+			{
+				spinner.spin(element[0]);
+				return;
+			}
+
+			scope.$watch(attrs.ngModel, function (value) {
+				if(value)
+					spinner.spin(element[0]);
+				else
+					spinner.stop();
+			});
+		}
+	};
+});
+
 app.controller('AppController', function ($scope, $location, $timeout, $http) {
 
 	function parseCoNLL(conll) {
@@ -233,27 +281,33 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 	};
 
 	$scope.getCoNLL = function () {
+		$scope.state.inProgress = true;
 		selectTab('input');
 		// $scope.inputCoNLL.editable = true;
 		$http.post('rest/conllize', $scope.sentence).success(function (data, status, headers, config) {
+			$scope.state.inProgress = false;
 			// console.log('success:', data);
 			$scope.inputCoNLL.raw = data;
 			$scope.inputCoNLL.data = parseCoNLL(data);
 		}).error(function (data, status, headers, config) {
+			$scope.state.inProgress = false;
 			console.log('error:', data);
 		});
 	};
 
 	$scope.parse = function () {
+		$scope.state.inProgress = true;
 		// $scope.inputCoNLL.editable = false;
 		var conll = genCoNLL($scope.inputCoNLL.data);
 		// console.log('parse sent:', conll);
 		selectTab('output');
 		$http.post('rest/parse', conll).success(function (data, status, headers, config) {
+			$scope.state.inProgress = false;
 			// console.log('success:', data);
 			$scope.outputCoNLL.raw = data;
 			$scope.outputCoNLL.data = parseCoNLL(data);
 		}).error(function (data, status, headers, config) {
+			$scope.state.inProgress = false;
 			console.log('error:', data);
 		});
 	};
@@ -287,7 +341,7 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 		console.log('drop:', event);
 	};
 
-	$scope.state = { copyFocus: false, copyVisible: false, pasteFocus: false, pasteVisible: false };
+	$scope.state = { copyFocus: false, copyVisible: false, pasteFocus: false, pasteVisible: false, inProgress: false };
 
 	$scope.showCopy = function () {
 		if(!$scope.state.copyVisible)

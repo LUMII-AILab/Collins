@@ -3,19 +3,26 @@
 <head>
 	<title>Syntax Parser</title>
 
-	<script src="libs/jquery/jquery-1.9.1.js"></script>
+	<!-- <script src="libs/jquery/jquery&#45;1.9.1.js"></script> -->
+	<script src="libs/jquery/jquery-1.9.1.min.js"></script>
 	<script src="libs/jquery/jquery-ui-1.10.2.custom.js"></script>
-	<script src="libs/bootstrap/js/bootstrap.js"></script>
+	<!-- <script src="libs/bootstrap/js/bootstrap.js"></script> -->
+	<script src="libs/bootstrap/js/bootstrap.min.js"></script>
 	<script src="libs/angular/angular.js"></script>
-	<script src="libs/angular/angular-resource.js"></script>
-	<script src="libs/angular/angular-bootstrap.js"></script>
+	<!-- <script src="libs/angular/angular&#45;resource.js"></script> -->
+	<script src="libs/angular/angular-resource.min.js"></script>
+	<!-- <script src="libs/angular/angular&#45;bootstrap.js"></script> -->
+	<script src="libs/angular/angular-bootstrap.min.js"></script>
 	<!-- <script src="libs/angular/angular&#45;sanitize.js"></script> -->
-	<script src="libs/angular-ui/angular-ui.js"></script>
+	<!-- <script src="libs/angular&#45;ui/angular&#45;ui.js"></script> -->
+	<script src="libs/angular-ui/angular-ui.min.js"></script>
 	<!-- <script src="libs/angular&#45;dragdrop/angular&#45;dragdrop.js"></script> -->
-	<script src="libs/angular-ui/bootstrap/ui-bootstrap-tpls-0.2.0.js"></script>
+	<!-- <script src="libs/angular&#45;ui/bootstrap/ui&#45;bootstrap&#45;tpls&#45;0.2.0.js"></script> -->
+	<script src="libs/angular-ui/bootstrap/ui-bootstrap-tpls-0.2.0.min.js"></script>
 	<!-- <script src="libs/angular&#45;ui/bootstrap/ui&#45;bootstrap&#45;0.2.0.js"></script> -->
 	<!-- <script src="libs/ng&#45;grid/ng&#45;grid&#45;2.0.4.debug.js"></script> -->
-	<script src="libs/jit/jit.js"></script>
+	<script src="libs/jit/jit-yc.js"></script>
+	<script src="libs/spin/spin.min.js"></script>
 
 	<script src="libs/download.js"></script>
 
@@ -42,8 +49,10 @@
 		<br/>
 		<textarea cols="60" rows="10" style="width: 600px; height: 100px;" ng-model="sentence"></textarea>
 		<br/>
-		<button class="btn btn-primary" ng-click="getCoNLL()">1. CoNLL</button>
-		<button class="btn btn-primary" ng-click="parse()">2. Parse</button>
+		<button class="btn btn-primary" ng-click="getCoNLL()" ng-disabled="state.inProgress">1. CoNLL</button>
+		<button class="btn btn-primary" ng-click="parse()" ng-disabled="state.inProgress">2. Parse</button>
+		<spin ng-model="state.inProgress" options="{speed: 1.5}"
+			style="display: inline-block; width: 50px; top: 8px; height: 22px"></spin>
 		<br/>
 		<br/>
 		<tabs>
