@@ -34,60 +34,14 @@
 	<link rel="stylesheet" href="libs/jquery/css/smoothness/jquery-ui-1.10.1.custom.css">
 	<!-- <link rel="stylesheet" href="libs/ng&#45;grid/ng&#45;grid.css"> -->
 
-	<script src="app.js"></script>
+	<script src="app-single.js"></script>
 
 	<link rel="stylesheet" href="app.css">
 
 </head>
 <body ng-controller="AppController">
 
-	<div id="main" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px;">
-		<tabs>
-			<pane heading="Multi">
-				<div style="position: absolute; top: 54px; left: 0px; bottom: 0px; right: 0px;" ng-controller="MultiController">
-					<div style="left: 0px; top: 0px; width: 250px;  bottom: 0px; position: absolute; overflow-y: scroll;"
-						class="no-sel dropbox" ng-class="dropClass" id="dropbox">
-						<div ng-repeat="tree in trees" class="list-item shorten" ng-class="{selected: tree===selected}" style=""
-							ng-click="select(tree)">
-							{{$index}} : {{tree.text}}
-						</div>
-					</div>
-					<div style="position: absolute; top: 0px; left: 250px; bottom: 0px; right: 0px; padding-left: 10px; margin-left: 10px; border-left: 1px solid #ddd; overflow-y: scroll;">
-						<button class="btn btn-primary" ng-click="downloadCoNLL()" ng-disabled="trees.length === 0">Download .CoNLL</button>
-						&nbsp;&nbsp;
-						<button class="btn btn-primary" ng-click="parse()" ng-disabled="!selected || state.inProgress">Parse</button>
-						<spin ng-model="state.inProgress" options="{speed: 1.5}"
-							style="display: inline-block; width: 50px; top: 8px; height: 22px"></spin>
-						<br/>
-						<br/>
-						<table class="conll-table" style="margin: 10px; position: relative;">
-							<tr>
-								<th>Index</th>
-								<th>Word</th>
-								<th>Lemma</th>
-								<th>Coarse Tag</th>
-								<th>Full Tag</th>
-								<th>Features</th>
-								<th>Parent</th>
-							<tr>
-							<tr ng-repeat="row in selected.data">
-								<!-- <td ng&#45;bind="row.index" editable="inputCoNLL.editable" class="integer"></td> -->
-								<td ng-bind="row.index" class="integer"></td>
-								<td ng-bind="row.word" editable="true"></td>
-								<td ng-bind="row.lemma" editable="true"></td>
-								<td ng-bind="row.tag0" editable="true"></td>
-								<td ng-bind="row.tag" editable="true"></td>
-								<td ng-bind="row.features" editable="true"></td>
-								<td ng-bind="row.parentIndex" editable="true" class="integer"></td>
-							</tr>
-						</table>
-					</div>
-				</div>
-			</pane>
-			<pane heading="Single">
-
-			<div ng-controller="SingleController">
-
+	<div id="main">
 		<!-- <div style="border: 2px dashed black; width: 100px; height: 50px;" dropzone="drop"> -->
 		<!-- 	{{test}} -->
 		<!-- </div> -->
@@ -127,8 +81,7 @@
 								<th>Parent</th>
 							<tr>
 							<tr ng-repeat="row in inputCoNLL.data">
-								<!-- <td ng&#45;bind="row.index" editable="inputCoNLL.editable" class="integer"></td> -->
-								<td ng-bind="row.index" class="integer"></td>
+								<td ng-bind="row.index" editable="inputCoNLL.editable" class="integer"></td>
 								<td ng-bind="row.word" editable="inputCoNLL.editable"></td>
 								<td ng-bind="row.lemma" editable="inputCoNLL.editable"></td>
 								<td ng-bind="row.tag0" editable="inputCoNLL.editable"></td>
@@ -167,7 +120,7 @@
 								<th>Parent</th>
 							<tr>
 							<tr ng-repeat="row in outputCoNLL.data">
-								<td ng-bind="row.index" class="integer"></td>
+								<td ng-bind="row.index" editable="outputCoNLL.editable" class="integer"></td>
 								<td ng-bind="row.word" editable="outputCoNLL.editable"></td>
 								<td ng-bind="row.lemma" editable="outputCoNLL.editable"></td>
 								<td ng-bind="row.tag0" editable="outputCoNLL.editable"></td>
@@ -195,11 +148,6 @@
 			</pane>
 		</tabs>
 		<br/>
-
-	</div>
-
-			</pane>
-		</tabs>
 	</div>
 
 </body>

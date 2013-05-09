@@ -17,6 +17,16 @@ ul.nav.nav-tabs {
     user-select: none;
 }
 
+.no-sel {
+    /* disable selection */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 button.btn {
     /* disable selection */
     -webkit-touch-callout: none;
@@ -108,3 +118,41 @@ table.conll-table input.edit-cell {
     user-select: none;
 }
 
+/* list stuff */
+
+.list {
+	/* overflow-x: hidden; */
+	overflow-y: scroll;
+	padding: 2px;
+}
+
+.list-item {
+	padding: 4px;
+}
+
+.list-item.selected {
+	background-color: #eee;
+}
+
+.list-item:hover {
+	padding: 3px;
+	border: 1px solid #aaa;
+	/* background-color: #ddd; */
+}
+
+#dropbox {
+	border: 1px solid #ddd;
+}
+/* .dropbox.over { */
+#dropbox.over {
+	border: 2px dashed #aaa;
+	/* background-color: red; */
+}
+
+.shorten {
+	/* max-width: 200px; */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	/* text-align: center; */
+	white-space: nowrap;
+}
