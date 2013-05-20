@@ -48,6 +48,8 @@ class CoNLLizator(object):
             else:
                 print "unknown status:", status
 
+        self.inProgress = False
+
         # import time
         # time.sleep(4)
         # print 'OK'
@@ -62,6 +64,8 @@ class CoNLLizator(object):
         text = text.strip()
         if not text:
             return ''
+
+        self.inProgress = True
 
         # if type(text) == str:
         #     text = text.decode('utf-8')
@@ -78,6 +82,8 @@ class CoNLLizator(object):
                 self.proc.stdout.readline()
                 break;
             lines += line
+
+        self.inProgress = False
 
         # print lines
         return lines

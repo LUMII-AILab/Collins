@@ -58,6 +58,8 @@ class Parser(object):
         self.thread.daemon = True
         self.thread.start()
 
+        self.inProgress = False
+
         # import time
         # time.sleep(4)
         # print 'OK'
@@ -73,6 +75,8 @@ class Parser(object):
 
         if not text:
             return ''
+
+        self.inProgress = True
 
         # if type(text) == str:
         #     text = text.decode('utf-8')
@@ -90,6 +94,8 @@ class Parser(object):
             if line == '\n':
                 break;
             lines += line
+
+        self.inProgress = False
 
         return lines
 
