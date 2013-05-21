@@ -14,6 +14,11 @@ print 'OK'
 print
 
 # gevent.monkey.patch_all() rada problēmas ar pipe, tāpēc ielādē tos pēc pipe izveidošanas
+# from: http://code.mixpanel.com/2010/10/29/gevent-the-good-the-bad-the-ugly/
+# "Order matters."
+# "Daemonize before you import gevent or at least before you call monkey.patch_all(). ..."
+# "... gevent modifies a socket in python internals. When you daemonize, all open file descriptors are closed ..."
+
 
 
 from gevent import monkey; monkey.patch_all()
