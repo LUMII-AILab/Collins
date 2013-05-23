@@ -51,7 +51,7 @@ traditional callback (<a href="http://en.wikipedia.org/wiki/Continuation-passing
 For more on this please see the <a href="https://github.com/kriskowal/q">Q documentation</a> especially the
 section on serial or parallel joining of promises.</p>
 
-<h3>The Deferred API</h3>
+<h1 id="thedeferredapi">The Deferred API</h3>
 
 <p>A new instance of deferred is constructed by calling <code>$q.defer()</code>.</p>
 
@@ -73,7 +73,7 @@ resolving it with a rejection constructed via <code>$q.reject</code>.</li>
 <li>promise – <code>{Promise}</code> – promise object associated with this deferred.</li>
 </ul>
 
-<h3>The Promise API</h3>
+<h1 id="thepromiseapi">The Promise API</h3>
 
 <p>A new promise instance is created when a deferred instance is created and can be retrieved by
 calling <code>deferred.promise</code>.</p>
@@ -92,7 +92,7 @@ is available. The callbacks are called with a single argument the result or reje
 <code>successCallback</code> or <code>errorCallback</code>.</p></li>
 </ul>
 
-<h3>Chaining promises</h3>
+<h1 id="chainingpromises">Chaining promises</h3>
 
 <p>Because calling <code>then</code> api of a promise returns a new derived promise, it is easily possible
 to create a chain of promises:</p>
@@ -111,7 +111,7 @@ promise (which will defer its resolution further), it is possible to pause/defer
 the promises at any point in the chain. This makes it possible to implement powerful apis like
 $http's response interceptors.</p>
 
-<h3>Differences between Kris Kowal's Q and $q</h3>
+<h1 id="differencesbetweenkriskowalsqanddq">Differences between Kris Kowal's Q and $q</h3>
 
 <p>There are three main differences:</p>
 
@@ -121,10 +121,10 @@ mechanism in angular, which means faster propagation of resolution or rejection 
 models and avoiding unnecessary browser repaints, which would result in flickering UI.</li>
 <li>$q promises are recognized by the templating engine in angular, which means that in templates
 you can treat promises attached to a scope as if they were the resulting values.</li>
-<li><p>Q has many more features that $q, but that comes at a cost of bytes. $q is tiny, but contains
+<li><p>Q has many more features than $q, but that comes at a cost of bytes. $q is tiny, but contains
 all the important functionality needed for common async tasks.</p>
 
-<h3>Testing</h3>
+<h1 id="testing">Testing</h3>
 
 <pre class="prettyprint linenums">
    it('should simulate promise', inject(function($q, $rootScope) {
@@ -156,13 +156,13 @@ all the important functionality needed for common async tasks.</p>
 <ul class="methods"><li><h3 id="all">all(promises)</h3>
 <div class="all"><p>Combines multiple promises into a single promise that is resolved when all of the input
 promises are resolved.</p><h4 id="Parameters">Parameters</h4>
-<ul class="parameters"><li><code ng:non-bindable="">promises – {Array.&lt;Promise&gt;|Object.&lt;Promise&gt;} – </code>
-<p>An array or hash of promises.</p></li>
+<ul class="parameters"><li><code ng:non-bindable="">promises – {Array.&lt;Promise&gt;} – </code>
+<p>An array of promises.</p></li>
 </ul>
 <h4 id="Returns">Returns</h4>
 <div class="returns"><code ng:non-bindable="">{Promise}</code>
-– <p>Returns a single promise that will be resolved with an array/hash of values,
-each value corresponding to the promise at the same index/key in the <code>promises</code> array/hash. If any of
+– <p>Returns a single promise that will be resolved with an array of values,
+each value corresponding to the promise at the same index in the <code>promises</code> array. If any of
 the promises is resolved with a rejection, this resulting promise will be resolved with the
 same rejection.</p></div>
 </div>
@@ -217,10 +217,7 @@ the promise comes from a source that can't be trusted.</p><h4 id="Parameters">Pa
 </ul>
 <h4 id="Returns">Returns</h4>
 <div class="returns"><code ng:non-bindable="">{Promise}</code>
-– <p>Returns a single promise that will be resolved with an array of values,
-each value corresponding to the promise at the same index in the <code>promises</code> array. If any of
-the promises is resolved with a rejection, this resulting promise will be resolved with the
-same rejection.</p></div>
+– <p>Returns a promise of the passed value or promise</p></div>
 </div>
 </li>
 </ul>

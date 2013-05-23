@@ -28,18 +28,12 @@
 
 <ul>
 <li><code>context</code> – <code>{object}</code> – an object against which any expressions embedded in the strings
- are evaluated against (typically a scope object).</li>
+ are evaluated against (tipically a scope object).</li>
 <li><p><code>locals</code> – <code>{object=}</code> – local variables context object, useful for overriding values in
  <code>context</code>.</p>
 
-<p>The returned function also has the following properties:</p>
-
-<ul><li><code>literal</code> – <code>{boolean}</code> – whether the expression's top-level node is a JavaScript
-literal.</li>
-<li><code>constant</code> – <code>{boolean}</code> – whether the expression is made entirely of JavaScript
-constant literals.</li>
-<li><code>assign</code> – <code>{?function(context, value)}</code> – if the expression is assignable, this will be
-set to a function to change its value on the given context.</li></ul></li>
+<p>The return function also has an <code>assign</code> property, if the expression is assignable, which
+allows one to set values to expressions.</p></li>
 </ul></div>
 </div>
 </div>

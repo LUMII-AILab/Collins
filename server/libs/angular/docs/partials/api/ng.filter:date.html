@@ -27,7 +27,6 @@
 <li><code>'m'</code>: Minute in hour (0-59)</li>
 <li><code>'ss'</code>: Second in minute, padded (00-59)</li>
 <li><code>'s'</code>: Second in minute (0-59)</li>
-<li><code>'.sss' or ',sss'</code>: Millisecond in second, padded (000-999)</li>
 <li><code>'a'</code>: am/pm marker</li>
 <li><code>'Z'</code>: 4 digit (+sign) representation of the timezone offset (-1200-+1200)</li>
 </ul>
@@ -61,7 +60,7 @@
 <h3 id="Parameters">Parameters</h3>
 <ul class="parameters"><li><code ng:non-bindable="">date – {(Date|number|string)} – </code>
 <p>Date to format either as Date object, milliseconds (string or
-number) or various ISO 8601 datetime string formats (e.g. yyyy-MM-ddTHH:mm:ss.SSSZ and it's
+number) or various ISO 8601 datetime string formats (e.g. yyyy-MM-ddTHH:mm:ss.SSSZ and its
 shorter versions like yyyy-MM-ddTHH:mmZ, yyyy-MM-dd or yyyyMMddTHHmmssZ). If no timezone is
 specified in the string input, the time is considered to be in the local timezone.</p></li>
 <li><code ng:non-bindable="">format<i>(optional)</i> – {string=} – </code>
@@ -100,5 +99,5 @@ specified in the string input, the time is considered to be in the local timezon
 </script>
 </div>
 </div><h4>Demo</h4>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-200" ng-eval-javascript=""></div></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-200" ng-eval-javascript=""></div></div>
 </div>

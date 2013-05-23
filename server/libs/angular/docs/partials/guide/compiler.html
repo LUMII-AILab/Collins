@@ -1,7 +1,7 @@
 <h1><code ng:non-bindable=""></code>
 <span class="hint"></span>
 </h1>
-<div><a href="http://github.com/angular/angular.js/edit/master/docs/content/guide/compiler.ngdoc" class="improve-docs btn btn-primary">Improve this doc</a><h2>Overview</h2>
+<div><a href="http://github.com/angular/angular.js/edit/master/docs/content/guide/compiler.ngdoc" class="improve-docs btn btn-primary">Improve this doc</a><h1 id="overview">Overview</h2>
 
 <p>Angular's <a href="api/ng.$compile"><code>HTML compiler</code></a> allows the developer to teach the
 browser new HTML syntax. The compiler allows you to attach behavior to any HTML element or attribute
@@ -25,10 +25,10 @@ Domain Specific Language for building your application.</p>
 <p>All of this compilation takes place in the web browser; no server side or pre-compilation step is
 involved.</p>
 
-<h2>Compiler</h2>
+<h1 id="compiler">Compiler</h2>
 
 <p>Compiler is an angular service which traverses the DOM looking for attributes. The compilation
-process happens into two phases.</p>
+process happens in two phases.</p>
 
 <ol>
 <li><p><strong>Compile:</strong> traverse the DOM and collect all of the directives. The result is a linking
@@ -42,7 +42,7 @@ in the scope model. This makes the scope model the single source of truth.</p></
 improves performance since the cloned template only needs to be compiled once, and then linked
 once for each clone instance.</p>
 
-<h2>Directive</h2>
+<h1 id="directive">Directive</h2>
 
 <p>A directive is a behavior which should be triggered when specific HTML constructs are encountered in
 the compilation process. The directives can be placed in element names, attributes, class names, as
@@ -74,8 +74,8 @@ to write directives.</p>
 <script type="text/ng-template" id="script.js-15">
     angular.module('drag', []).
       directive('draggable', function($document) {
-        var startX=0, startY=0, x = 0, y = 0;
         return function(scope, element, attr) {
+          var startX = 0, startY = 0, x = 0, y = 0;
           element.css({
            position: 'relative',
            border: '1px solid red',
@@ -83,6 +83,8 @@ to write directives.</p>
            cursor: 'pointer'
           });
           element.bind('mousedown', function(event) {
+            // Prevent default dragging of selected content
+            event.preventDefault();
             startX = event.screenX - x;
             startY = event.screenY - y;
             $document.bind('mousemove', mousemove);
@@ -107,14 +109,14 @@ to write directives.</p>
   </script>
 </div>
 </div><h3>Demo</h3>
-<div class="well doc-example-live animator-container" ng-embed-app="drag" ng-set-html="index.html-16" ng-eval-javascript="script.js-15"></div>
+<div class="well doc-example-live" ng-embed-app="drag" ng-set-html="index.html-16" ng-eval-javascript="script.js-15"></div>
 
 <p>The presence of the <code>draggable</code> attribute on any element gives the element new behavior. The beauty of
 this approach is that we have taught the browser a new trick. We have extended the vocabulary of
 what the browser understands in a way which is natural to anyone who is familiar with HTML
 principles.</p>
 
-<h2>Understanding View</h2>
+<h1 id="understandingview">Understanding View</h2>
 
 <p>There are many templating systems out there. Most of them consume a static string template and
 combine it with data, resulting in a new string. The resulting text is then <code>innerHTML</code>ed into

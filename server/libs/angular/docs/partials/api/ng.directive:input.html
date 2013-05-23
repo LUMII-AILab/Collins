@@ -6,7 +6,7 @@
 <div class="description"><p>HTML input element control with angular data-binding. Input control follows HTML5 input types
 and polyfills the HTML5 validation behavior for older browsers.</p></div>
 <h2 id="Usage">Usage</h2>
-<div class="usage"><p>This directive can be used as custom element, but we aware of <a href="guide/ie">IE restrictions</a>.</p>as element:<pre class="prettyprint linenums">&lt;input
+<div class="usage">This directive can be used as custom element, but be aware of <a href="guide/ie">IE restrictions</a>.as element:<pre class="prettyprint linenums">&lt;input
        ngModel="{string}"
        [name="{string}"]
        [required]
@@ -42,10 +42,10 @@ interaction with the input element.</p></li>
 </div>
 <h2 id="Example">Example</h2>
 <div class="example"><h4>Source</h4>
-<div source-edit="" source-edit-deps="angular.js script.js" source-edit-html="index.html-137" source-edit-css="" source-edit-js="script.js-136" source-edit-unit="" source-edit-scenario="scenario.js-138"></div>
+<div source-edit="" source-edit-deps="angular.js script.js" source-edit-html="index.html-122" source-edit-css="" source-edit-js="script.js-121" source-edit-unit="" source-edit-scenario="scenario.js-123"></div>
 <div class="tabbable"><div class="tab-pane" title="index.html">
-<pre class="prettyprint linenums" ng-set-text="index.html-137" ng-html-wrap=" angular.js script.js"></pre>
-<script type="text/ng-template" id="index.html-137">
+<pre class="prettyprint linenums" ng-set-text="index.html-122" ng-html-wrap=" angular.js script.js"></pre>
+<script type="text/ng-template" id="index.html-122">
  
  <div ng-controller="Ctrl">
    <form name="myForm">
@@ -64,7 +64,7 @@ interaction with the input element.</p></li>
    <tt>myForm.userName.$valid = {{myForm.userName.$valid}}</tt><br>
    <tt>myForm.userName.$error = {{myForm.userName.$error}}</tt><br>
    <tt>myForm.lastName.$valid = {{myForm.lastName.$valid}}</tt><br>
-   <tt>myForm.userName.$error = {{myForm.lastName.$error}}</tt><br>
+   <tt>myForm.lastName.$error = {{myForm.lastName.$error}}</tt><br>
    <tt>myForm.$valid = {{myForm.$valid}}</tt><br>
    <tt>myForm.$error.required = {{!!myForm.$error.required}}</tt><br>
    <tt>myForm.$error.minlength = {{!!myForm.$error.minlength}}</tt><br>
@@ -73,16 +73,16 @@ interaction with the input element.</p></li>
 </script>
 </div>
 <div class="tab-pane" title="script.js">
-<pre class="prettyprint linenums" ng-set-text="script.js-136"></pre>
-<script type="text/ng-template" id="script.js-136">
+<pre class="prettyprint linenums" ng-set-text="script.js-121"></pre>
+<script type="text/ng-template" id="script.js-121">
    function Ctrl($scope) {
      $scope.user = {name: 'guest', last: 'visitor'};
    }
  </script>
 </div>
 <div class="tab-pane" title="End to end test">
-<pre class="prettyprint linenums" ng-set-text="scenario.js-138"></pre>
-<script type="text/ng-template" id="scenario.js-138">
+<pre class="prettyprint linenums" ng-set-text="scenario.js-123"></pre>
+<script type="text/ng-template" id="scenario.js-123">
   it('should initialize to model', function() {
     expect(binding('user')).toEqual('{"name":"guest","last":"visitor"}');
     expect(binding('myForm.userName.$valid')).toEqual('true');
@@ -122,5 +122,5 @@ interaction with the input element.</p></li>
 </script>
 </div>
 </div><h4>Demo</h4>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-137" ng-eval-javascript="script.js-136"></div></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-122" ng-eval-javascript="script.js-121"></div></div>
 </div>

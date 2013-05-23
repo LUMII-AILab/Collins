@@ -28,7 +28,7 @@ a service. The Provider can have additional methods which would allow for config
 
     beforeEach(module(function($provide) {
       $provide.provider('greet', GreetProvider);
-    });
+    }));
 
     it('should greet', inject(function(greet) {
       expect(greet('angular')).toEqual('Hello angular!');
@@ -41,9 +41,7 @@ a service. The Provider can have additional methods which would allow for config
       inject(function(greet) {
         expect(greet('angular')).toEqual('Ahoj angular!');
       });
-    )};
-
-  });
+    });
 </pre></div>
 <div class="member method"><h2 id="Methods">Methods</h2>
 <ul class="methods"><li><h3 id="constant">constant(name, value)</h3>
@@ -68,7 +66,7 @@ original instance.</p><h4 id="Parameters">Parameters</h4>
 <p>The name of the service to decorate.</p></li>
 <li><code ng:non-bindable="">decorator – {function()} – </code>
 <p>This function will be invoked when the service needs to be
-instanciated. The function is called using the <a href="api/AUTO.$injector#invoke"><code>injector.invoke</code></a> method and is therefore fully injectable. Local injection arguments:</p>
+instantiated. The function is called using the <a href="api/AUTO.$injector#invoke"><code>injector.invoke</code></a> method and is therefore fully injectable. Local injection arguments:</p>
 
 <ul>
 <li><code>$delegate</code> - The original service instance, which can be monkey patched, configured,

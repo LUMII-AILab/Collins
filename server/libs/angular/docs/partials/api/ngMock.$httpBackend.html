@@ -3,10 +3,10 @@
 )</span>
 </h1>
 <div><a href="http://github.com/angular/angular.js/edit/master/src/ngMock/angular-mocks.js" class="improve-docs btn btn-primary">Improve this doc</a><h2 id="Description">Description</h2>
-<div class="description"><p>Fake HTTP backend implementation suitable for unit testing application that use the
+<div class="description"><p>Fake HTTP backend implementation suitable for unit testing applications that use the
 <a href="api/ng.$http"><code>$http service</code></a>.</p>
 
-<p><em>Note</em>: For fake http backend implementation suitable for end-to-end testing or backend-less
+<p><em>Note</em>: For fake HTTP backend implementation suitable for end-to-end testing or backend-less
 development please see <a href="api/ngMockE2E.$httpBackend">e2e $httpBackend mock</a>.</p>
 
 <p>During unit testing, we want our unit tests to run quickly and have no external dependencies so
@@ -32,7 +32,7 @@ backend when the code under test makes http requests:</p>
 <li><code>$httpBackend.when</code> - specifies a backend definition</li>
 </ul>
 
-<h3>Request Expectations vs Backend Definitions</h3>
+<h1 id="requestexpectationsvsbackenddefinitions">Request Expectations vs Backend Definitions</h3>
 
 <p>Request expectations provide a way to make assertions about requests made by the application and
 to define responses for those requests. The test will fail if the expected requests are not made
@@ -86,7 +86,7 @@ definitions for an appropriate response.</p>
 defined, the backend definitions are evaluated in sequential order to see if any of them match
 the request. The response from the first matched definition is returned.</p>
 
-<h3>Flushing HTTP requests</h3>
+<h1 id="flushinghttprequests">Flushing HTTP requests</h3>
 
 <p>The $httpBackend used in production, always responds to requests with responses asynchronously.
 If we preserved this behavior in unit testing, we'd have to create async unit tests, which are
@@ -96,7 +96,7 @@ mock $httpBackend has a <code>flush()</code> method, which allows the test to ex
 requests and thus preserving the async api of the backend, while allowing the test to execute
 synchronously.</p>
 
-<h3>Unit testing with mock $httpBackend</h3>
+<h1 id="unittestingwithmockdhttpbackend">Unit testing with mock $httpBackend</h3>
 
 <pre class="prettyprint linenums">
    // controller

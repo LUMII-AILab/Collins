@@ -18,17 +18,17 @@ To solve this problem, we introduce the <code>ngChecked</code> directive.</p></d
 </div>
 <h2 id="Example">Example</h2>
 <div class="example"><h4>Source</h4>
-<div source-edit="" source-edit-deps="angular.js" source-edit-html="index.html-90" source-edit-css="" source-edit-js="" source-edit-unit="" source-edit-scenario="scenario.js-91"></div>
+<div source-edit="" source-edit-deps="angular.js" source-edit-html="index.html-92" source-edit-css="" source-edit-js="" source-edit-unit="" source-edit-scenario="scenario.js-93"></div>
 <div class="tabbable"><div class="tab-pane" title="index.html">
-<pre class="prettyprint linenums" ng-set-text="index.html-90" ng-html-wrap=" angular.js"></pre>
-<script type="text/ng-template" id="index.html-90">
+<pre class="prettyprint linenums" ng-set-text="index.html-92" ng-html-wrap=" angular.js"></pre>
+<script type="text/ng-template" id="index.html-92">
   Check me to check both: <input type="checkbox" ng-model="master"><br/>
   <input id="checkSlave" type="checkbox" ng-checked="master">
 </script>
 </div>
 <div class="tab-pane" title="End to end test">
-<pre class="prettyprint linenums" ng-set-text="scenario.js-91"></pre>
-<script type="text/ng-template" id="scenario.js-91">
+<pre class="prettyprint linenums" ng-set-text="scenario.js-93"></pre>
+<script type="text/ng-template" id="scenario.js-93">
   it('should check both checkBoxes', function() {
     expect(element('.doc-example-live #checkSlave').prop('checked')).toBeFalsy();
     input('master').check();
@@ -37,5 +37,5 @@ To solve this problem, we introduce the <code>ngChecked</code> directive.</p></d
 </script>
 </div>
 </div><h4>Demo</h4>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-90" ng-eval-javascript=""></div></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-92" ng-eval-javascript=""></div></div>
 </div>

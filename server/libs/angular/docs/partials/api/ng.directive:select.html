@@ -5,7 +5,7 @@
 <div><a href="http://github.com/angular/angular.js/edit/master/src/ng/directive/select.js" class="improve-docs btn btn-primary">Improve this doc</a><h2 id="Description">Description</h2>
 <div class="description"><p>HTML <code>SELECT</code> element with angular data-binding.</p>
 
-<h3><code>ngOptions</code></h3>
+<h1 id="ngoptions"><code>ngOptions</code></h3>
 
 <p>Optionally <code>ngOptions</code> attribute can be used to dynamically generate a list of <code>&lt;option&gt;</code>
 elements for a <code>&lt;select&gt;</code> element using an array or an object obtained by evaluating the
@@ -24,15 +24,18 @@ of <a href="api/ng.directive:ngRepeat"><code>ngRepeat</code></a> when you want t
 <code>select</code> model to be bound to a non-string value. This is because an option element can currently
 be bound to string values only.</p></div>
 <h2 id="Usage">Usage</h2>
-<div class="usage"><p>This directive can be used as custom element, but we aware of <a href="guide/ie">IE restrictions</a>.</p>as element:<pre class="prettyprint linenums">&lt;select
-       name="{string}"
+<div class="usage">This directive can be used as custom element, but be aware of <a href="guide/ie">IE restrictions</a>.as element:<pre class="prettyprint linenums">&lt;select
+       ngModel="{string}"
+       [name="{string}"]
        [required]
        [ngRequired="{string}"]
        [ngOptions="{comprehension_expression}"]&gt;
 &lt;/select&gt;</pre>
 <h3 id="Parameters">Parameters</h3>
-<ul class="parameters"><li><code ng:non-bindable="">name – {string} – </code>
-<p>assignable expression to data-bind to.</p></li>
+<ul class="parameters"><li><code ng:non-bindable="">ngModel – {string} – </code>
+<p>Assignable angular expression to data-bind to.</p></li>
+<li><code ng:non-bindable="">name<i>(optional)</i> – {string=} – </code>
+<p>Property name of the form under which the control is published.</p></li>
 <li><code ng:non-bindable="">required<i>(optional)</i> – {string=} – </code>
 <p>The control is considered valid only if value is entered.</p></li>
 <li><code ng:non-bindable="">ngRequired<i>(optional)</i> – {string=} – </code>
@@ -142,5 +145,5 @@ the element when the ngRequired expression evaluates to true. Use <code>ngRequir
 </script>
 </div>
 </div><h4>Demo</h4>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-190" ng-eval-javascript="script.js-189"></div></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-190" ng-eval-javascript="script.js-189"></div></div>
 </div>

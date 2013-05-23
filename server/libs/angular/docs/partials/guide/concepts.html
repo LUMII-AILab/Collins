@@ -1,7 +1,7 @@
 <h1><code ng:non-bindable=""></code>
 <span class="hint"></span>
 </h1>
-<div><a href="http://github.com/angular/angular.js/edit/master/docs/content/guide/concepts.ngdoc" class="improve-docs btn btn-primary">Improve this doc</a><h2>Overview</h2>
+<div><a href="http://github.com/angular/angular.js/edit/master/docs/content/guide/concepts.ngdoc" class="improve-docs btn btn-primary">Improve this doc</a><h1 id="overview">Overview</h2>
 
 <p>This document gives a quick overview of the main angular components and how they work together.
 These are:</p>
@@ -22,7 +22,7 @@ These are:</p>
 
 <p><a name="startup"></a></p>
 
-<h2>Startup</h2>
+<h1 id="startup">Startup</h2>
 
 <p>This is how we get the ball rolling (refer to the diagram and example below):</p>
 
@@ -56,18 +56,18 @@ These are:</p>
   </script>
 </div>
 </div><h3>Demo</h3>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-17" ng-eval-javascript=""></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-17" ng-eval-javascript=""></div>
 
 <p><a name="runtime"></a></p>
 
-<h2>Runtime</h2>
+<h1 id="runtime">Runtime</h2>
 
 <p><img class="pull-right" style="padding-left: 3em; padding-bottom: 1em;" src="img/guide/concepts-runtime.png"></p>
 
 <p>The diagram and the example below describe how Angular interacts with the browser's event loop.</p>
 
 <ol>
-<li>The browser's event-loop waits for an event to arrive. An event is a user interactions, timer event,
+<li>The browser's event-loop waits for an event to arrive. An event is a user interaction, timer event,
  or network event (response from a server).</li>
 <li>The event's callback gets executed. This enters the JavaScript context. The callback can
   modify the DOM structure.</li>
@@ -81,7 +81,7 @@ applied in Angular execution context will benefit from Angular data-binding, exc
 property watching, etc... You can also use $apply() to enter Angular execution context from JavaScript. Keep in
 mind that in most places (controllers, services) $apply has already been called for you by the
 directive which is handling the event. An explicit call to $apply is needed only when
-implementing custom event callbacks, or when working with a third-party library callbacks.</p>
+implementing custom event callbacks, or when working with third-party library callbacks.</p>
 
 <ol>
 <li>Enter Angular execution context by calling <a href="guide/scope">scope</a><code>.</code><a href="api/ng.$rootScope.Scope#$apply"><code>$apply</code></a><code>(stimulusFn)</code>. Where <code>stimulusFn</code> is
@@ -103,7 +103,7 @@ implementing custom event callbacks, or when working with a third-party library 
  re-rendering the DOM to reflect any changes.</li>
 </ol>
 
-<p>Here is the explanation of how the <code>Hello wold</code> example achieves the data-binding effect when the
+<p>Here is the explanation of how the <code>Hello world</code> example achieves the data-binding effect when the
 user enters text into the text field.</p>
 
 <ol>
@@ -139,19 +139,19 @@ the JavaScript execution context.</li>
   </script>
 </div>
 </div><h3>Demo</h3>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-18" ng-eval-javascript=""></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-18" ng-eval-javascript=""></div>
 
 <p><a name="scope"></a></p>
 
-<h2>Scope</h2>
+<h1 id="scope">Scope</h2>
 
 <p>The <a href="guide/scope">scope</a> is responsible for detecting changes to the model section and
 provides the execution context for expressions. The scopes are nested in a hierarchical structure
 which closely follow the DOM structure. (See individual directive documentation to see which
 directives cause a creation of new scopes.)</p>
 
-<p>The following example demonstrates how <code>name</code> <a href="guide/expression">expression</a> will evaluate
-into different value depending on which scope it is evaluated in. The example is followed by
+<p>The following example demonstrates how the <code>name</code> <a href="guide/expression">expression</a> will evaluate
+into a different value depending on which scope it is evaluated in. The example is followed by
 a diagram depicting the scope boundaries.</p>
 
 <div class="clear">
@@ -196,14 +196,14 @@ a diagram depicting the scope boundaries.</p>
   </script>
 </div>
 </div><h3>Demo</h3>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-19" ng-eval-javascript="script.js-20"></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-19" ng-eval-javascript="script.js-20"></div>
 </div>
 
 <p><img class="center" src="img/guide/concepts-scope.png"></p>
 
 <p><a name="controller"></a></p>
 
-<h2>Controller</h2>
+<h1 id="controller">Controller</h2>
 
 <p><img class="pull-right" style="padding-left: 3em; padding-bottom: 1em;" src="img/guide/concepts-controller.png"></p>
 
@@ -254,15 +254,15 @@ and testability.</li>
   </script>
 </div>
 </div><h3>Demo</h3>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-22" ng-eval-javascript="script.js-23"></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-22" ng-eval-javascript="script.js-23"></div>
 
 <p><a name="model"></a></p>
 
-<h2>Model</h2>
+<h1 id="model">Model</h2>
 
 <p><img class="pull-right" style="padding-left: 3em; padding-bottom: 1em;" src="img/guide/concepts-model.png"></p>
 
-<p>The model is the data which is used merged with the template to produce the view. To be able to
+<p>The model is the data which is merged with the template to produce the view. To be able to
 render the model into the view, the model has to be able to be referenced from the scope. Unlike many
 other frameworks Angular makes no restrictions or requirements on the model. There are no classes
 to inherit from or special accessor methods for accessing or changing the model. The model can be
@@ -273,7 +273,7 @@ primitive, object hash, or a full object Type. In short the model is a plain Jav
 
 <p><a name="view"></a></p>
 
-<h2>View</h2>
+<h1 id="view">View</h2>
 
 <p><img class="pull-right" style="padding-left: 3em; padding-bottom: 1em;" src="img/guide/concepts-view.png"></p>
 
@@ -320,11 +320,11 @@ the single source-of-truth for your view.</li>
   </script>
 </div>
 </div><h3>Demo</h3>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-24" ng-eval-javascript=""></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-24" ng-eval-javascript=""></div>
 
 <p><a name="directives"></a></p>
 
-<h2>Directives</h2>
+<h1 id="directives">Directives</h2>
 
 <p>A directive is a behavior or DOM transformation which is triggered by the presence of a custom attribute,
 element name, or a class name. A directive allows you to extend the HTML vocabulary in a
@@ -378,11 +378,11 @@ in HTML.</p>
   </script>
 </div>
 </div><h3>Demo</h3>
-<div class="well doc-example-live animator-container" ng-embed-app="directive" ng-set-html="index.html-26" ng-eval-javascript="script.js-25"></div>
+<div class="well doc-example-live" ng-embed-app="directive" ng-set-html="index.html-26" ng-eval-javascript="script.js-25"></div>
 
 <p><a name="filters"></a></p>
 
-<h2>Filters</h2>
+<h1 id="filters">Filters</h2>
 
 <p><a href="api/ng.$filter"><code>Filters</code></a> perform data transformation. Typically
 they are used in conjunction with the locale to format the data in locale specific output.
@@ -401,12 +401,12 @@ They follow the spirit of UNIX filters and use similar syntax <code>|</code> (pi
   </script>
 </div>
 </div><h3>Demo</h3>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-28" ng-eval-javascript=""></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-28" ng-eval-javascript=""></div>
 
 <p><a name="module"></a>
 <a name="injector"></a></p>
 
-<h2>Modules and the Injector</h2>
+<h1 id="modulesandtheinjector">Modules and the Injector</h2>
 
 <p><img class="pull-right" style="padding-left: 3em; padding-bottom: 1em;" src="img/guide/concepts-module-injector.png"></p>
 
@@ -473,7 +473,7 @@ allows the methods and types to ask for their dependencies instead of having to 
 function arguments. When angular calls the function, it will use the <a href="api/AUTO.$injector#invoke"><code>call</code></a> which will automatically fill the function
 arguments.</p>
 
-<p>Examine the <code>ClockCtrl</code> bellow, and notice how it lists the dependencies in the constructor. When the
+<p>Examine the <code>ClockCtrl</code> below, and notice how it lists the dependencies in the constructor. When the
 <a href="api/ng.directive:ngController"><code>ng-controller</code></a> instantiates
 the controller it automatically provides the dependencies. There is no need to create
 dependencies, look for dependencies, or even get a reference to the injector.</p>
@@ -512,11 +512,11 @@ dependencies, look for dependencies, or even get a reference to the injector.</p
   </script>
 </div>
 </div><h3>Demo</h3>
-<div class="well doc-example-live animator-container" ng-embed-app="timeExampleModule" ng-set-html="index.html-29" ng-eval-javascript="script.js-30"></div>
+<div class="well doc-example-live" ng-embed-app="timeExampleModule" ng-set-html="index.html-29" ng-eval-javascript="script.js-30"></div>
 
 <p><a name="angular_namespace"></a></p>
 
-<h2>Angular Namespace</h2>
+<h1 id="angularnamespace">Angular Namespace</h2>
 
 <p>To prevent accidental name collision, Angular prefixes names of objects which could potentially
 collide with <code>$</code>. Please do not use the <code>$</code> prefix in your code as it may accidentally collide

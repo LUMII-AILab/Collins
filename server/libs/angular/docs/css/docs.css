@@ -3,15 +3,6 @@ img.AngularJS-small {
   height: 25px;
 }
 
-/* this is here to avoid the display=block shuffling of ngShow */
-.breadcrumb li > * {
-  float:left;
-  margin:0 2px 0 0;
-}
-
-.breadcrumb {
-  padding-bottom:2px;
-}
 
 .clear-navbar {
   margin-top: 60px;
@@ -196,4 +187,16 @@ ul.events > li > h3 {
 
 .clear {
   clear: both;
+}
+
+.tutorial-page {
+  position:relative;
+}
+.tutorial-page-no-nav {
+  padding-top:50px;
+}
+.tutorial-page-no-nav .improve-docs {
+  position:absolute;
+  top:0;
+  right:0;
 }

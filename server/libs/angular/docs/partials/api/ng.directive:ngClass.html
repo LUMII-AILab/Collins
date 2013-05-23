@@ -26,10 +26,10 @@ names, an array, or a map of class names to boolean values.</p></li>
 </div>
 <h2 id="Example">Example</h2>
 <div class="example"><h4>Source</h4>
-<div source-edit="" source-edit-deps="angular.js" source-edit-html="index.html-109" source-edit-css="style.css-110" source-edit-js="" source-edit-unit="" source-edit-scenario="scenario.js-111"></div>
+<div source-edit="" source-edit-deps="angular.js" source-edit-html="index.html-140" source-edit-css="style.css-141" source-edit-js="" source-edit-unit="" source-edit-scenario="scenario.js-142"></div>
 <div class="tabbable"><div class="tab-pane" title="index.html">
-<pre class="prettyprint linenums" ng-set-text="index.html-109" ng-html-wrap=" angular.js"></pre>
-<script type="text/ng-template" id="index.html-109">
+<pre class="prettyprint linenums" ng-set-text="index.html-140" ng-html-wrap=" angular.js"></pre>
+<script type="text/ng-template" id="index.html-140">
  <input type="button" value="set" ng-click="myVar='my-class'">
  <input type="button" value="clear" ng-click="myVar=''">
  <br>
@@ -37,16 +37,16 @@ names, an array, or a map of class names to boolean values.</p></li>
 </script>
 </div>
 <div class="tab-pane" title="style.css">
-<pre class="prettyprint linenums" ng-set-text="style.css-110"></pre>
-<style type="text/css" id="style.css-110">
+<pre class="prettyprint linenums" ng-set-text="style.css-141"></pre>
+<style type="text/css" id="style.css-141">
   .my-class {
     color: red;
   }
 </style>
 </div>
 <div class="tab-pane" title="End to end test">
-<pre class="prettyprint linenums" ng-set-text="scenario.js-111"></pre>
-<script type="text/ng-template" id="scenario.js-111">
+<pre class="prettyprint linenums" ng-set-text="scenario.js-142"></pre>
+<script type="text/ng-template" id="scenario.js-142">
   it('should check ng-class', function() {
     expect(element('.doc-example-live span').prop('className')).not().
       toMatch(/my-class/);
@@ -64,5 +64,5 @@ names, an array, or a map of class names to boolean values.</p></li>
 </script>
 </div>
 </div><h4>Demo</h4>
-<div class="well doc-example-live animator-container" ng-embed-app="" ng-set-html="index.html-109" ng-eval-javascript=""></div></div>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-140" ng-eval-javascript=""></div></div>
 </div>

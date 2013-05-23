@@ -1,7 +1,7 @@
 <!doctype html>
 <html ng-app="app">
 <head>
-	<title>Latvian Text Analyzer</title>
+	<title>Syntax Parser</title>
 
 	<!-- <script src="libs/jquery/jquery&#45;1.9.1.js"></script> -->
 	<script src="libs/jquery/jquery-1.9.1.min.js"></script>
@@ -34,165 +34,26 @@
 	<link rel="stylesheet" href="libs/jquery/css/smoothness/jquery-ui-1.10.1.custom.css">
 	<!-- <link rel="stylesheet" href="libs/ng&#45;grid/ng&#45;grid.css"> -->
 
-	<script src="app-full.js"></script>
+	<script src="app.js"></script>
 
-	<link rel="stylesheet" href="app-full.css">
+	<link rel="stylesheet" href="app.css">
 
 </head>
-<body ng-controller="AppController" no-drop>
+<body ng-controller="AppController">
 
-	<div id="header" style="margin: 10px; padding: 0px 10px; border: 1px solid #ddd;">
-		<h4>Latvian Text Analyzer</h4>
-	</div>
-
-	<div id="main" style="position: absolute; top: 50px; left: 0px; bottom: 0px; right: 0px;">
-		<tabs>
-			<pane heading="Text Input" class="fill top-tabs">
-				<div ng-controller="TextInputController">
-				<tabs>
-					<pane heading="Raw Text" class="fill top-tabs">
-					<button class="btn btn-primary" ng-click="extractSentences(data.text)"
-						ng-disabled="!data.text.length || state.splitInProgress">Extract Sentences</button>
-						<spin ng-model="state.splitInProgress" options="{speed: 1.5}"
-							style="display: inline-block; width: 50px; top: 8px; height: 22px"></spin>
-						<textarea class="fill" ng-class="{over: dragState=='over'}" rows="10" ng-model="data.text" style="width: auto; top: 40px; resize: none;" dropzone="dropTextFile"></textarea>
-					</pane>
-					<pane heading="Sentences">
-						<div class="fill top-tabs" ng-controller="SentencesController">
-							<div class="list fill-left controls-border no-sel bottom-action-btns" style="width: 245px; overflow-y: scroll;"
-								ng-class="dragState" dropzone="dropTextFileAndExtract">
-								<div ng-repeat="sentence in data.sentences" class="list-item shorten" ng-class="{selected: $index==selected}"
-									ng-click="select($index)">
-									{{$index}} : {{sentence}}
-								</div>
-							</div>
-							<div class="" style="position: absolute; bottom: 0;">
-								<button class="btn btn-mini micro-action-btn" ng-click="addNew()"><i class="icon-plus"></i></button>
-								<button class="btn btn-mini micro-action-btn" ng-click="remove()" ng-disabled="selected == undefined">
-									<i class="icon-minus"></i></button>
-							</div>
-							<div class="fill controls-separator-left" style="left: 250px; overflow-y: scroll;">
-								<button class="btn btn-primary" ng-click="exportToCoNLL()"
-									ng-disabled="!data.sentences.length || state.inProgress">Autotag &amp; Convert to CoNLL</button>
-								<spin ng-model="state.inProgress" options="{speed: 1.5}"
-									style="display: inline-block; width: 50px; top: 8px; height: 22px"></spin>
-								<textarea class="fill margin-left" ng-model="data.sentences[selected]"
-									style="width: auto; top: 40px; resize: none;"></textarea>
-							</div>
-						</div>
-					</pane>
-				</tabs>
-			</div>
-
-			</pane>
-			<pane heading="CoNLL">
-				<div class="fill top-tabs" ng-controller="CoNLLController">
-					<!-- TODO: dropzone here: action - autosplit text file ! -->
-					<div class="list fill-left controls-border no-sel bottom-action-btns" style="width: 245px; overflow-y: scroll;"
-						ng-class="dragState" dropzone="dropFile">
-						<div ng-repeat="sentence in data.conll" class="list-item shorten" ng-class="{selected: sentence==selected}"
-							ng-click="select(sentence)" style="position: relative;">
-							<!-- <div ng&#45;show="sentence.inProgress" style="position: absolute; top: 0px; left: 0px; width: 22px; height: 22px;"> -->
-								<!-- ng&#45;style="{'background&#45;color': sentence.inProgress ? 'white' : 'none'}"> -->
-								<spin ng-model="sentence.inProgress" options="{speed: 1.5, length: 4, radius: 2}"
-									style="position: absolute; width: 22px; height: 22px; left: -3px;"></spin>
-							<!-- </div> -->
-							<!-- <div class="fill" ng&#45;show="!sentence.inProgress" -->
-							<!-- 	style="margin&#45;left: 6px; width: 22px; height: 22px; top: 3px;">{{$index}}</div> -->
-							<!-- <div class="fill shorten" style="left: 24px; height: 22px; top: 3px;">{{sentence.text}}</div> -->
-							{{$index}} : {{sentence.text}}
-						</div>
-					</div>
-					<!-- <div class="" style="position: absolute; bottom: 0;"> -->
-					<!-- 	<button class="btn btn&#45;mini micro&#45;action&#45;btn" ng&#45;click="addNew()"><i class="icon&#45;plus"></i></button> -->
-					<!-- 	<button class="btn btn&#45;mini micro&#45;action&#45;btn" ng&#45;click="remove()" ng&#45;disabled="selected == undefined"> -->
-					<!-- 		<i class="icon&#45;minus"></i></button> -->
-					<!-- </div> -->
-					<div class="fill controls-separator-left" style="left: 250px; overflow-y: scroll;">
-						<tabs>
-							<pane heading="All" class="fill top-tabs">
-								<div class="fill margin-left">
-									<button class="btn btn-primary" ng-click="parseAll()"
-										ng-disabled="!data.conll.length || state.inProgress">Parse</button>
-									<button class="btn btn-primary" ng-click="resolveCorefs()"
-										ng-disabled="!data.conll.length || state.inProgress">Resolve Coreferences</button>
-									<spin ng-model="state.inProgress" options="{speed: 1.5}"
-										style="display: inline-block; width: 50px; top: 8px; height: 22px"></spin>
-									<br/>
-									<br/>
-									<button class="btn btn-primary" ng-click="downloadCoNLL()"
-										ng-disabled="!data.conll.length || state.inProgress">Download .CoNLL</button>
-									<!-- <button class="btn btn&#45;primary" ng&#45;click="downloadCoNLL()" style="position: absolute; right: 0px;">Download .CoNLL</button> -->
-								</div>
-							</pane>
-							<pane heading="Edit Selected" class="fill top-tabs">
-								<div class="fill margin-left">
-									<button class="btn btn-primary" ng-click="parse()"
-										ng-disabled="!selected">Parse</button>
-									<spin ng-model="state.singleParseInProgress" options="{speed: 1.5}"
-										style="display: inline-block; width: 50px; top: 8px; height: 22px"></spin>
-								</div>
-								<div class="fill" style="overflow-y: scroll; top: 40px;">
-									<table class="conll-table" style="margin: 10px; position: relative;">
-										<tr>
-											<th>Index</th>
-											<th>Word</th>
-											<th>Lemma</th>
-											<th>Coarse Tag</th>
-											<th>Full Tag</th>
-											<th>Features</th>
-											<th>Parent</th>
-											<th>Named Entity ID</th>
-											<th>Named Entity Type</th>
-											<th>Frame Elements</th>
-										<tr>
-										<tr ng-repeat="row in selected.tokens">
-											<!-- <td ng&#45;bind="row.index" editable="inputCoNLL.editable" class="integer"></td> -->
-											<td ng-bind="row.index" class="integer"></td>
-											<td ng-bind="row.word" editable="true"></td>
-											<td ng-bind="row.lemma" editable="true"></td>
-											<td ng-bind="row.tag0" editable="true"></td>
-											<td ng-bind="row.tag" editable="true"></td>
-											<td ng-bind="row.features" editable="true"></td>
-											<td ng-bind="row.parentIndex" editable="true" class="integer"></td>
-											<td ng-bind="row.namedEntityID" editable="true"></td>
-											<td ng-bind="row.namedEntityType" editable="true"></td>
-											<td ng-bind="row.frameElements" editable="true"></td>
-										</tr>
-									</table>
-								</div>
-							</pane>
-							<pane heading="Tree" class="fill top-tabs" active="selectedTabs.tree">
-								<div class="fill margin-left" style="overflow-y: scroll;">
-									<div id="treeView" class="fill"></div>
-								</div>
-							</pane>
-						</tabs>
-					</div>
-				</div>
-			</pane>
-			<pane heading="Coref Preview">
-				<div class="fill top-tabs" ng-controller="CoNLLController">
-					<coref class="fill" ng-model="data.conll"></coref>
-				</div>
-			</pane>
-		</tabs>
-
-		<!-- ************************************************************************************** -->
-
-		<div style="display: none;">
+	<div id="main" style="position: absolute; top: 0px; left: 0px; bottom: 0px; right: 0px;">
 		<tabs>
 			<pane heading="Multi">
 				<div style="position: absolute; top: 54px; left: 0px; bottom: 0px; right: 0px;" ng-controller="MultiController">
 					<div style="left: 0px; top: 0px; width: 250px;  bottom: 0px; position: absolute; overflow-y: scroll;"
 						class="no-sel dropbox" ng-class="dropClass" id="dropbox">
-						<div ng-repeat="tree in trees" class="list-item shorten" ng-class="{selected: tree==selected}" style=""
+						<div ng-repeat="tree in trees" class="list-item shorten" ng-class="{selected: tree===selected}" style=""
 							ng-click="select(tree)">
 							{{$index}} : {{tree.text}}
 						</div>
 					</div>
 					<div style="position: absolute; top: 0px; left: 250px; bottom: 0px; right: 0px; padding-left: 10px; margin-left: 10px; border-left: 1px solid #ddd; overflow-y: scroll;">
-						<button class="btn btn-primary" ng-click="downloadCoNLL()" ng-disabled="trees.length == 0">Download .CoNLL</button>
+						<button class="btn btn-primary" ng-click="downloadCoNLL()" ng-disabled="trees.length === 0">Download .CoNLL</button>
 						&nbsp;&nbsp;
 						<button class="btn btn-primary" ng-click="parse()" ng-disabled="!selected || state.inProgress">Parse</button>
 						<spin ng-model="state.inProgress" options="{speed: 1.5}"
@@ -339,7 +200,6 @@
 
 			</pane>
 		</tabs>
-	</div>
 	</div>
 
 </body>
