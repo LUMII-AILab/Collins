@@ -22,6 +22,9 @@ class CorefResolver(object):
                 return
             command = newcmd
 
+        self.proc = None
+        self.inProgress = False
+
         # command = os.path.abspath(command)
 
         # null = open(os.devnull, 'w')
@@ -31,7 +34,12 @@ class CorefResolver(object):
 
         # self.proc = subprocess.Popen([command]+args.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=null)
         # print [command]+args.split()
-        self.proc = subprocess.Popen([command]+args.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        try:
+            self.proc = subprocess.Popen([command]+args.split(), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except:
+            if verbose:
+                print "Coref NOT ready"
+            return
 
         # use utf-8 for input
         # self.proc.stdin = codecs.getwriter('utf-8')(self.proc.stdin)
@@ -53,7 +61,6 @@ class CorefResolver(object):
         #     else:
         #         print "unknown status:", status
 
-        self.inProgress = False
 
         # import time
         # time.sleep(1)
