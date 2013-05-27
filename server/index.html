@@ -118,6 +118,7 @@
 										ng-disabled="!data.conll.length || state.inProgress">Resolve Coreferences</button>
 									<spin ng-model="state.inProgress" options="{speed: 1.5}"
 										style="display: inline-block; width: 50px; top: 8px; height: 22px"></spin>
+									<progress ng-show="state.parseAllInProgress" value="{{state.parseAllProgress}}" class="progress-success active" style="width: 200px;"></progress>
 									<br/>
 									<br/>
 									<button class="btn btn-primary" ng-click="downloadCoNLL()"
@@ -171,7 +172,7 @@
 					</div>
 				</div>
 			</pane>
-			<pane heading="Coref Preview">
+			<pane heading="Coreferences Preview">
 				<div class="fill top-tabs" ng-controller="CoNLLController">
 					<coref class="fill" ng-model="data.conll"></coref>
 				</div>

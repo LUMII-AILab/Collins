@@ -4,6 +4,7 @@
 from tokenize import CoNLLizator
 from parse import Parser
 from sent_tokenize import SentenceTokenizer
+from coref import CorefResolver
 import conll2json
 
 print 'Starting...'
@@ -11,6 +12,7 @@ print 'Starting...'
 splitter = SentenceTokenizer()
 conllizator = CoNLLizator("../LVTagger/morphotagger.sh")
 parser = Parser(command="build/collins", args="--load --stdin --stdout -q --basedir=build")
+coref = CorefResolver("~/Work/LVCoref-semi-bin/lvcoref.sh")
 
 print 'OK'
 print
@@ -70,11 +72,11 @@ def split():
     # return splitter(text)
     # return json.dumps(sentences, indent=2)
 
-# TODO: getvalue() -> read()
 @post('/rest/parse')
 def parse():
     response.content_type = 'text/html; charset=utf-8'
-    conll = request.body.getvalue()
+    # conll = request.body.getvalue()
+    conll = request.body.read()
     while parser.inProgress:
         sleep(0.1)
     return parser(conll)
@@ -82,10 +84,9 @@ def parse():
 @post('/rest/parse2')
 def parse2():
     response.content_type = 'text/html; charset=utf-8'
-    try:
-        conll = request.body.getvalue()
-    except:
-        conll = request.body.read()
+
+    conll = request.body.read()
+
     while parser.inProgress:
         sleep(0.1)
 
@@ -106,10 +107,24 @@ def parse2():
         sentences.append(parser(sentence))
     return '\n\n'.join(sentences)
 
+
+@post('/rest/coref')
+def corefResolver():
+    response.content_type = 'text/html; charset=utf-8'
+
+    conll = request.body.read()
+
+    while coref.inProgress:
+        sleep(0.1)
+
+    return coref(conll)
+
+
 @post('/rest/conllize')
 def CoNLLize():
     response.content_type = 'text/html; charset=utf-8'
-    sentence = request.body.getvalue()
+    # sentence = request.body.getvalue()
+    sentence = request.body.read()
     while conllizator.inProgress:
         sleep(0.1)
     return conllizator(sentence)
@@ -128,7 +143,8 @@ def CoNLLize2():
 @post('/rest/conll2json')
 def CoNLLize():
     response.content_type = 'application/json; charset=utf-8'
-    conll = request.body.getvalue()
+    # conll = request.body.getvalue()
+    conll = request.body.read()
     return conll2json.convert(conll)
 
 @route('/')

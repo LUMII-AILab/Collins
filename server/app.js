@@ -594,7 +594,23 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 				continue;
 			}
 
+
 			var parts = line.split('\t');
+			var namedEntityIDIndex = 10;
+			var namedEntityTypeIndex = 11;
+			var frameElementsIndex = 12;
+			if(parts.length > 12)
+			{
+				namedEntityIDIndex = 12;
+				namedEntityTypeIndex = 13;
+				frameElementsIndex = 14;
+			}
+			else if(parts.length < 13)
+			{
+				namedEntityIDIndex = 7;
+				namedEntityTypeIndex = 8;
+				frameElementsIndex = 9;
+			}
 			sentence.push({
 				index: parseInt(parts[0]),
 				word: parts[1],
@@ -603,12 +619,15 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 				tag: parts[4],
 				features: parts[5],
 				parentIndex: parseInt(parts[6] && parts[6].length > 0 ? parseInt(parts[6]) : -1),
-				namedEntityID: parts[7] === '_' ? undefined : parts[7],
-				namedEntityType: parts[8] === '_' ? undefined : parts[8],
-				frameElements: parts[9] === '_' ? undefined : parts[9],
+				// namedEntityID: parts[7] === '_' ? undefined : parts[7],
+				// namedEntityType: parts[8] === '_' ? undefined : parts[8],
+				// frameElements: parts[9] === '_' ? undefined : parts[9],
 				// namedEntityID: parts[10] === '_' ? undefined : parts[10],
 				// namedEntityType: parts[11] === '_' ? undefined : parts[11],
 				// frameElements: parts[12] === '_' ? undefined : parts[12],
+				namedEntityID: parts[namedEntityIDIndex] === '_' ? undefined : parts[namedEntityIDIndex],
+				namedEntityType: parts[namedEntityTypeIndex] === '_' ? undefined : parts[namedEntityTypeIndex],
+				frameElements: parts[frameElementsIndex] === '_' ? undefined : parts[frameElementsIndex],
 				all: parts
 			});
 		}
@@ -623,6 +642,15 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 
 	$scope.setCoNLL = function (text) {
 		$scope.global.data.conll = $scope.parseCoNLL(text);
+		return;
+		// if($scope.global.data.conll === undefined)
+		// 	$scope.global.data.conll = [];
+		// $scope.global.data.conll.length = 0;
+		// var newCoNLL = $scope.parseCoNLL(text);
+		// for(var i in newCoNLL)
+		// {
+		// 	$scope.global.data.conll.push(newCoNLL[i]);
+		// }
 	};
 
 });
@@ -634,8 +662,8 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 		for(var i in sentence.tokens)
 		{
 			var token = sentence.tokens[i];
-			// var parts = [token.index, token.word, token.lemma, token.tag0, token.tag, token.features, token.parentIndex, '_', '_', '_'];
-			var parts = [token.index, token.word, token.lemma, token.tag0, token.tag, token.features, token.parentIndex];
+			var parts = [token.index, token.word, token.lemma, token.tag0, token.tag, token.features, token.parentIndex, '_', '_', '_'];
+			// var parts = [token.index, token.word, token.lemma, token.tag0, token.tag, token.features, token.parentIndex];
 			parts.push(token.namedEntityID ? token.namedEntityID : '_');
 			parts.push(token.namedEntityType ? token.namedEntityType : '_');
 			parts.push(token.frameElements ? token.frameElements : '_');
@@ -657,7 +685,9 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 
 	$scope.state = {
 		inProgress: false,
-		singleParseInProgress: false
+		singleParseInProgress: false,
+		parseAllInProgress: false,
+		parseAllProgress: 0
 	};
 
 	$scope.selected = undefined;
@@ -669,12 +699,14 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 	$scope.parseAll = function (event) {
 
 		$scope.state.inProgress = true;
+		$scope.state.parseAllInProgress = true;
 		var i = 0;
 
 		function next() {
 			if(i >= $scope.data.conll.length)
 			{
 				$scope.state.inProgress = false;
+				$scope.state.parseAllInProgress = false;
 			}
 			else
 			{
@@ -689,11 +721,14 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 			$scope.data.conll[index].tokens = conll.tokens;
 			$scope.data.conll[index].text = $scope.extractText(conll.tokens);
 			$scope.data.conll[index].inProgress = false;
+			$scope.state.parseAllProgress = (index/$scope.data.conll.length).toFixed(2).toString();
+			// $scope.state.parseAllProgress = index/$scope.data.conll.length;
 			next();
 		}
 
 		function onError(index, data, status, headers, config) {
 			$scope.data.conll[index].inProgress = false;
+			$scope.state.parseAllProgress = index/$scope.data.conll.length;
 			console.log('error:', data);
 			next();
 		}
