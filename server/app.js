@@ -634,10 +634,80 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 		return sentences;
 	};
 
+	$scope.parseCoNLL2 = function (conll, callback) {
+
+		if(!conll || conll.length == 0)
+			return;
+
+		// var lines = conll.match(/[^\r\n]+/g);
+		var lines = conll.split(/\n/);
+
+		var sentences = [];
+		var sentence = [];
+
+		for(var i in lines)
+		{
+			var line = lines[i].trim();
+			if(line.length == 0)
+			{
+				if(sentence.length > 0)
+				{
+					if(callback)
+						callback(sentence);
+					sentences.push({tokens: sentence, text: $scope.extractText(sentence), inProgress: false});
+				}
+				sentence = [];
+				continue;
+			}
+
+
+			var parts = line.split('\t');
+			var namedEntityIDIndex = 10;
+			var namedEntityTypeIndex = 11;
+			var frameElementsIndex = 12;
+			if(parts.length > 12)
+			{
+				namedEntityIDIndex = 12;
+				namedEntityTypeIndex = 13;
+				frameElementsIndex = 14;
+			}
+			else if(parts.length < 13)
+			{
+				namedEntityIDIndex = 7;
+				namedEntityTypeIndex = 8;
+				frameElementsIndex = 9;
+			}
+			sentence.push({
+				index: parseInt(parts[0]),
+				word: parts[1],
+				lemma: parts[2],
+				tag0: parts[3],
+				tag: parts[4],
+				features: '_',
+				parentIndex: parseInt(parts[5] && parts[5].length > 0 ? parseInt(parts[5]) : -1),
+				// namedEntityID: parts[7] === '_' ? undefined : parts[7],
+				// namedEntityType: parts[8] === '_' ? undefined : parts[8],
+				// frameElements: parts[9] === '_' ? undefined : parts[9],
+				// namedEntityID: parts[10] === '_' ? undefined : parts[10],
+				// namedEntityType: parts[11] === '_' ? undefined : parts[11],
+				// frameElements: parts[12] === '_' ? undefined : parts[12],
+				namedEntityID: parts[namedEntityIDIndex] === '_' ? undefined : parts[namedEntityIDIndex],
+				namedEntityType: parts[namedEntityTypeIndex] === '_' ? undefined : parts[namedEntityTypeIndex],
+				frameElements: parts[frameElementsIndex] === '_' ? undefined : parts[frameElementsIndex],
+				all: parts
+			});
+		}
+		return sentences;
+	};
+
 	$scope.global = {
 		data: {
 			conll: undefined
 		}
+	};
+
+	$scope.setCoNLL2 = function (text) {
+		$scope.global.data.conll = $scope.parseCoNLL2(text);
 	};
 
 	$scope.setCoNLL = function (text) {
@@ -785,7 +855,7 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 		// console.log(conll);
 		$http.post('rest/coref', conll).success(function (data, status, headers, config) {
 			// console.log('success:', data);
-			$scope.setCoNLL(data);
+			$scope.setCoNLL2(data);
 			$scope.state.inProgress = false;
 		}).error(function (data, status, headers, config) {
 			$scope.state.inProgress = false;
