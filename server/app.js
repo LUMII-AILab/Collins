@@ -599,7 +599,7 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 			var namedEntityIDIndex = 10;
 			var namedEntityTypeIndex = 11;
 			var frameElementsIndex = 12;
-			if(parts.length > 12)
+			if(parts.length > 13)
 			{
 				namedEntityIDIndex = 12;
 				namedEntityTypeIndex = 13;
@@ -611,6 +611,7 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 				namedEntityTypeIndex = 8;
 				frameElementsIndex = 9;
 			}
+			// console.log(namedEntityIDIndex,parts);
 			sentence.push({
 				index: parseInt(parts[0]),
 				word: parts[1],
@@ -723,6 +724,121 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 		// }
 	};
 
+	$scope.generateXML = function () {
+		// TODO: šī jebkurā gadījumā ir pagaidu versija
+		// pilnā versija ir iespējama tikai tad, kad visi rīki atbalstīs "jauno specifikāciju", lai nebūtu datu zudumu
+		
+		var conll = $scope.global.data.conll;
+
+		var namedEntities = {};
+
+		var parser = new DOMParser();
+		var xmlDoc = parser.parseFromString('<?xml version="1.0" encoding="utf-8"?><Sentences />', 'text/xml');
+		// var xmlSentences = xmlDoc.createElement('Sentences');
+		// var xmlDoc = document.implementation.createDocument('', 'Sentences', null);
+		// console.log(window.DOMParser);
+		// console.log(xmlDoc.doctype);
+		// console.log(xmlDoc.characterSet);
+		// console.log(xmlDoc.xmlEncoding);
+
+		for(var i in conll)
+		{
+			var sentence = conll[i];
+
+			var xmlSentence = xmlDoc.createElement('Sentence');
+			xmlSentence.setAttribute('ID', i.toString());
+
+			var xmlWords = xmlDoc.createElement('Words');
+			var xmlNamedEntities = xmlDoc.createElement('NamedEntities');
+			var xmlMarkers = xmlDoc.createElement('Markers');
+
+			var text = '';
+			for(var j in sentence.tokens)
+			{
+				var token = sentence.tokens[j];
+
+				var xmlWord = xmlDoc.createElement('Word');
+
+				if(text.length === 0)
+					text = token.word;
+				else
+					text += ' '+token.word;
+
+				// NOTE: tā kā .conll indeksi sākas ar 1, bet xml brīnumā sākas ar 0, tad -1
+				xmlWord.setAttribute('Index', (token.index-1).toString());
+				xmlWord.setAttribute('Original', token.word);
+				xmlWord.setAttribute('Morph1', token.tag0);
+				xmlWord.setAttribute('Morph2', token.tag);
+				xmlWord.setAttribute('Lemma', token.lemma);
+				xmlWord.setAttribute('Parent', token.parentIndex >= 0 ? (token.parentIndex-1).toString() : '-1');
+
+				if(token.namedEntityID)
+				{
+					namedEntities[token.namedEntityID] = token.namedEntityType;
+					
+					// console.log(token.namedEntityID, token.namedEntityType);
+
+					var xmlNamedEntity = xmlDoc.createElement('NamedEntity');
+					xmlNamedEntity.setAttribute('ID', token.namedEntityID);
+					xmlNamedEntity.setAttribute('WordIndex', (j-1).toString());
+
+					xmlNamedEntities.appendChild(xmlNamedEntity);
+				}
+
+				xmlWords.appendChild(xmlWord);
+			}
+
+			xmlSentence.setAttribute('Text', text);
+
+			xmlSentence.appendChild(xmlWords);
+			xmlSentence.appendChild(xmlNamedEntities);
+			xmlSentence.appendChild(xmlMarkers);
+			xmlDoc.documentElement.appendChild(xmlSentence);
+		}
+
+
+		var serializer = new XMLSerializer();
+		// console.log(xmlDoc);
+		// console.log(serializer.serializeToString(xmlDoc));
+		// console.log(XML(serializer.serializeToString(xmlDoc)).toXMLString());
+		var doc = serializer.serializeToString(xmlDoc);
+		
+		xmlDoc = parser.parseFromString('<?xml version="1.0" encoding="utf-8"?><SemanticDB />', 'text/xml');
+		var xmlNamedEntities = xmlDoc.createElement('NamedEntities');
+		var xmlFrames = xmlDoc.createElement('Frames');
+
+		for(var id in namedEntities)
+		{
+			var xmlNamedEntity = xmlDoc.createElement('NamedEntity');
+
+			xmlNamedEntity.setAttribute('ID', id.toString());
+			xmlNamedEntity.setAttribute('Type', namedEntities[id]);
+
+			xmlNamedEntities.appendChild(xmlNamedEntity);
+		}
+
+		xmlDoc.documentElement.appendChild(xmlNamedEntities);
+		xmlDoc.documentElement.appendChild(xmlFrames);
+
+		var db = serializer.serializeToString(xmlDoc);
+		// console.log(db);
+
+		return [doc, db];
+	};
+
+	$scope.downloadXML = function () {
+		// TODO: šī funkcija ir jāpārvieto uz attiecīgo kontrolieri, pagaidām dev stadijā ērtāk ir šeit
+		var docdb = $scope.generateXML();
+		var doc = docdb[0];
+		var db = docdb[1];
+		// console.log(db);
+		// showSave(db, 'SemanticDB.xml', 'application/xml');
+		// showSave(doc, 'output.xml', 'application/xml');
+		showSave(db, 'SemanticDB.xml', 'application/xml');
+		$timeout(function () {
+			showSave(doc, 'output.xml', 'application/xml');
+		}, 300);
+	};
 });
 
 app.controller('CoNLLController', function ($scope, $location, $timeout, $http) {
