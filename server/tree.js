@@ -85,7 +85,7 @@ function SentenceTree(svgElement, inputTokens, options)
 			var distX = rectStrokeWidth + 3;
 			var nextX = baseX;
 			var fontSize = 20;
-			var padding = { top: 2, bottom: 3, left: 4, right: 6 };
+			var padding = { top: 2, bottom: 3, left: 3, right: 7 };
 			// kompensē rāmja biezumu
 			for(var k in padding)
 				padding[k] += rectStrokeWidth/2;
