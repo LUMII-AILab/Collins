@@ -837,7 +837,7 @@ app.controller('AppController', function ($scope, $location, $timeout, $http) {
 		showSave(db, 'SemanticDB.xml', 'application/xml');
 		$timeout(function () {
 			showSave(doc, 'output.xml', 'application/xml');
-		}, 300);
+		}, 1000);
 	};
 });
 
