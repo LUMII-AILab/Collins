@@ -3,6 +3,8 @@
 // var app = angular.module('app', ['ngResource', 'ui', 'ngDragDrop', 'ui.bootstrap']);
 var app = angular.module('app', ['ngResource', 'ui', 'ui.bootstrap']);
 
+// detect firefox
+var is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 
 // http://stackoverflow.com/questions/14544741/angularjs-directive-to-stoppropagation/14547223#14547223
 // usage: <a ng-click='...' stop-event='click'>'
@@ -49,6 +51,7 @@ app.directive('dropzone', function () {
 				});
 			}
 
+
 			element.addClass('dropzone');
 
 			// TODO: portablāku veidu, kā pievienot eventus
@@ -58,7 +61,9 @@ app.directive('dropzone', function () {
 				event.stopPropagation();
 				event.preventDefault();
 				// TODO: šito būtu kaut kā jākonfigurē
-				var ok = event.dataTransfer && event.dataTransfer.types && event.dataTransfer.types.indexOf('Files') >= 0;
+				// NOTE: firefox ir .contains funkcija, bet webkit implementācijā .types ir vienkārši array
+				var types = event.dataTransfer && event.dataTransfer.types;
+				var ok = types && ((types.contains && types.contains('Files')) || (!types.contains && types.indexOf('Files') >= 0));
 				scope.$apply(function () {
 					scope.dragState = ok ? 'over' : 'not-available';
 				});
@@ -125,8 +130,24 @@ app.directive('editable', function ($parse) {
 				if(attrs.editable && !scope.$eval(attrs.editable))
 					return;
 
+				var fix_position = is_firefox && element[0].tagName.toLowerCase() == "td";
+
 				var edit = $('<input type="text" class="edit-cell" />');
 				edit.appendTo(element);
+				if(fix_position)
+				{
+					var pos = element.position();
+					// var w = element.innerWidth();
+					var w = element.width()+4;
+					var h = element.height();
+
+					edit.css({
+						top: pos.top,
+						left: pos.left,
+						width: w,
+						height: h
+					});
+				}
 				edit.val(scope.$eval(attrs.ngBind));
 				edit.focus();
 				edit.focusout(function () {
