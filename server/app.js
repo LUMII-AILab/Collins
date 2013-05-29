@@ -519,6 +519,32 @@ app.directive('coref', function () {
 	};
 });
 
+app.directive('tree', function () {
+	return {
+		restrict: 'E',
+		transclude: true,
+		replace: true,
+		require: '?ngModel',
+		// scope: true,
+		template: '<svg></svg>',
+		link: function (scope, element, attrs, ngModel) {
+
+			// console.log(element[0]);
+			var tree = new SentenceTree(d3.select(element[0]), ngModel.$modelValue, {});
+
+			scope.$watch(attrs.ngModel, function (value) {
+				tree.generate(value);
+			});
+
+			if(attrs.visible)
+				scope.$watch(attrs.visible, function (value) {
+					if(value)
+						tree.generate(ngModel.$modelValue);
+				});
+		}
+	};
+});
+
 app.controller('AppController', function ($scope, $location, $timeout, $http) {
 
 	var noGapBefore = ['.', ',', ':', ';', '!', '?', ')', ']', '}', '%'];
@@ -867,7 +893,7 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 		showSave(conll.join('\n'), 'output.conll', 'application/json');
 	};
 
-	$scope.selectedTabs = { all: false, edit: true, tree: false };
+	$scope.selectedTabs = { all: false, edit: true, tree: false, tree2: false };
 
 	$scope.state = {
 		inProgress: false,
@@ -1010,6 +1036,17 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 		$scope.selected.json = createTree($scope.selected.tokens);
 		setTree($scope.selected.json);
 	});
+
+	// $scope.$watch('selectedTabs.tree', function (value) {
+	// 	if(!value) return;
+	// 	if(!$scope.selected)
+	// 	{
+	// 		setTree(createTree());
+	// 		return;
+	// 	}
+	// 	$scope.selected.json = createTree($scope.selected.tokens);
+	// 	setTree($scope.selected.json);
+	// });
 
 	// TODO: tree watch $scope.selected and update
 	// TODO: tree as directive...

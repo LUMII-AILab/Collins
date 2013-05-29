@@ -24,7 +24,10 @@
 	<script src="libs/jit/jit-yc.js"></script>
 	<script src="libs/spin/spin.min.js"></script>
 
+	<script src="libs/d3/d3.v3.min.js"></script>
+
 	<script src="libs/download.js"></script>
+
 
 	<!-- <script src="https://maps.google.com/maps/api/js?sensor=false&#38;language=lv"></script> -->
 
@@ -34,6 +37,7 @@
 	<link rel="stylesheet" href="libs/jquery/css/smoothness/jquery-ui-1.10.1.custom.css">
 	<!-- <link rel="stylesheet" href="libs/ng&#45;grid/ng&#45;grid.css"> -->
 
+	<script src="tree.js"></script>
 	<script src="app.js"></script>
 
 	<link rel="stylesheet" href="app.css">
@@ -170,13 +174,18 @@
 									<div id="treeView" class="fill"></div>
 								</div>
 							</pane>
+							<pane heading="Projective Tree" class="fill top-tabs" active="selectedTabs.tree2">
+								<div class="fill margin-left controls-border" style="overflow-y: scroll;">
+									<tree ng-model="selected.tokens" class="fill" visible="selectedTabs.tree2"></tree>
+								</div>
+							</pane>
 						</tabs>
 					</div>
 				</div>
 			</pane>
 			<pane heading="Coreferences Preview">
 				<div class="fill top-tabs" ng-controller="CoNLLController">
-					<coref class="fill" ng-model="data.conll"></coref>
+					<!-- <coref class="fill" ng&#45;model="data.conll"></coref> -->
 				</div>
 			</pane>
 		</tabs>
