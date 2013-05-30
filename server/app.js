@@ -1146,7 +1146,7 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 			$timeout(function () {
 				tree = initTree();
 				setTree(data);
-			}, 300);
+			}, 1);
 		}
 		else
 		{
@@ -1154,7 +1154,7 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 			tree.compute();
 			tree.onClick(tree.root, {
 				Move: {
-					offsetY: 200
+					// offsetY: 200
 				}
 			});
 		}
@@ -1166,6 +1166,8 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 		var tmp = new $jit.ST({
 			injectInto: 'treeView',
 			orientation: 'top',
+			// width: 800,
+			// height: 800,
 			//Add node/edge styles
 			Node: {
 			  overridable: false,  
@@ -1190,6 +1192,10 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 				// type: 'quadratic:begin'
 				// type: 'line'
 			},
+			// Label: {
+			// 	type: 'SVG',
+			// 	color: 'red'
+		    // },
 			//Parent-children distance
 			levelDistance: 15,
 			levelsToShow: 20,
@@ -1235,8 +1241,68 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 				// 		}
 				// 	});  
 				// };
-			}
+			},
+
+//Add the name of the node in the correponding label
+        //and a click handler to move the graph.
+        //This method is called once, on label creation.
+        onCreateLabel0: function(domElement, node){
+            domElement.firstChild
+              .appendChild(document
+                .createTextNode(node.name));
+            domElement.onclick = function(){
+                rgraph.onClick(node.id, {
+                  hideLabels: false
+                });
+            };
+        },
+        //Change some label dom properties.
+        //This method is called each time a label is plotted.
+        onPlaceLabel0: function(domElement, node){
+            var bb = domElement.getBBox();
+			domElement.setAttribute('transform', 'translate('+domElement.getAttribute('x')+','+domElement.getAttribute('y')+')');
+			return;
+            if(bb) {
+              //center the label
+              var x = domElement.getAttribute('x');
+              var y = domElement.getAttribute('y');
+              //get polar coordinates
+              var p = node.pos.getp(true);
+              //get angle in degrees
+              var pi = Math.PI;
+              var cond = (p.theta > pi/2 && p.theta < 3* pi /2);
+              if(cond) {
+                domElement.setAttribute('x', x - bb.width );
+                domElement.setAttribute('y', y - bb.height );
+              } else if(node.id == rgraph.root) {
+                domElement.setAttribute('x', x - bb.width/2); 
+              }
+              
+              var thetap =  cond? p.theta + pi : p.theta;
+                domElement.setAttribute('transform', 'rotate('
+                + thetap * 360 / (2 * pi) + ' ' + x + ' ' + y + ')');
+            }
+		}
+
 		});
+
+		// var el = $('#treeView > div, canvas');
+		// el.removeAttr('style').removeAttr('width').removeAttr('height').addClass('fill').addClass('full-size');
+		// console.log(el);
+		
+		var p = $('#treeView');
+
+		$timeout(function () {
+			tmp.canvas.resize(p.width(), p.height());
+		}, 1);
+
+		$(window).on('resize', function () {
+			var tx = tmp.canvas.translateOffsetX;
+			var ty = tmp.canvas.translateOffsetY;
+			tmp.canvas.resize(p.width(), p.height());
+			tmp.canvas.translate(tx, ty);
+		});
+
 		return tmp;
 	};
 });

@@ -115,8 +115,10 @@ function SentenceTree(svgElement, inputTokens, options)
 					.text(token.name);
 					// .style('stroke', 'black');
 					// console.log(text);
-				height = text[0][0].getBBox().height+padding.top+padding.bottom;
-				width = text[0][0].getBBox().width+padding.left+padding.right;
+				// console.log(text);
+				var bbox = text[0][0].getBBox();
+				height = bbox.height+padding.top+padding.bottom;
+				width = bbox.width+padding.left+padding.right;
 				// console.log(height, width);
 				
 				g.append('rect')

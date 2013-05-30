@@ -440,11 +440,16 @@ table.conll-table input.edit-cell {
 #treeView {
     /* width: 1200px; */
     /* width: 98%; */
-    height: 600px;
+    /* height: 600px; */
     /* height: 500px; */
+	overflow: hidden;
     position: absolute;
     /* top: 0; */
-    border: 1px solid #aaa;
+    top: 0;
+    bottom: 0;
+	left: 0;
+	right: 0;
+    /* border: 1px solid #aaa; */
 
 	font-family: Times;
 	font-size: 16px;
