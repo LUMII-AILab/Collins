@@ -37,7 +37,9 @@
 	<link rel="stylesheet" href="libs/jquery/css/smoothness/jquery-ui-1.10.1.custom.css">
 	<!-- <link rel="stylesheet" href="libs/ng&#45;grid/ng&#45;grid.css"> -->
 
-	<script src="tree.js"></script>
+	<script src="jit-tree.js"></script>
+	<script src="force-tree.js"></script>
+	<script src="proj-tree.js"></script>
 	<script src="app.js"></script>
 
 	<link rel="stylesheet" href="app.css">
@@ -175,14 +177,19 @@
 									</table>
 								</div>
 							</pane>
-							<pane heading="Tree" class="fill top-tabs" active="selectedTabs.tree">
-								<div class="fill margin-left" style="overflow-y: scroll; overflow: hidden;">
-									<div id="treeView" class="fill controls-border"></div>
+							<pane heading="Tree" class="fill top-tabs" active="selectedTabs.defaultTree">
+								<div class="fill margin-left controls-border" style="overflow-y: scroll; overflow: hidden;">
+									<default-tree id="defaultTree" ng-model="selected.tokens" visible="selectedTabs.defaultTree" class="fill full-size no-sel" />
 								</div>
 							</pane>
-							<pane heading="Projective Tree" class="fill top-tabs" active="selectedTabs.tree2">
+							<pane heading="Projective Tree" class="fill top-tabs" active="selectedTabs.projectiveTree">
 								<div class="fill margin-left controls-border">
-									<tree ng-model="selected.tokens" class="fill full-size" visible="selectedTabs.tree2"></tree>
+									<projective-tree ng-model="selected.tokens" visible="selectedTabs.projectiveTree" class="fill full-size" />
+								</div>
+							</pane>
+							<pane heading="Force Tree" class="fill top-tabs" active="selectedTabs.forceTree">
+								<div class="fill margin-left controls-border">
+									<force-tree ng-model="selected.tokens" visible="selectedTabs.forceTree" class="fill full-size no-sel" />
 								</div>
 							</pane>
 						</tabs>

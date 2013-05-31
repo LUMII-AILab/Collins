@@ -540,7 +540,7 @@ app.directive('coref', function () {
 	};
 });
 
-app.directive('tree', function () {
+app.directive('projectiveTree', function () {
 	return {
 		restrict: 'E',
 		transclude: true,
@@ -562,6 +562,97 @@ app.directive('tree', function () {
 					if(value)
 						tree.generate(ngModel.$modelValue);
 				});
+		}
+	};
+});
+
+app.directive('forceTree', function ($timeout) {
+	return {
+		restrict: 'E',
+		transclude: true,
+		replace: true,
+		require: '?ngModel',
+		// scope: true,
+		template: '<svg></svg>',
+		link: function (scope, element, attrs, ngModel) {
+
+			var tree = new DirectedForceTree(d3.select(element[0]));
+
+			tree.load(ngModel.$modelValue);
+
+			scope.$watch(attrs.ngModel, function (value) {
+				tree.load(value);
+			});
+
+			var el = $(element);
+			// tree.resize(el.width(), el.height());
+
+			if(attrs.visible === undefined)
+			{
+				// tree.show();
+				tree.resize(el.width(), el.height());
+			}
+			else
+				scope.$watch(attrs.visible, function (value) {
+					if(!value)
+						return
+
+					// tree.show();
+					tree.load(ngModel.$modelValue);
+					tree.resize(el.width(), el.height());
+				});
+
+			$(window).on('resize', function () {
+				if(attrs.visible === undefined || scope.$eval(attrs.visible))
+					tree.resize(el.width(), el.height());
+			});
+		}
+	};
+});
+
+app.directive('defaultTree', function ($timeout) {
+	return {
+		restrict: 'E',
+		transclude: true,
+		replace: true,
+		require: '?ngModel',
+		// scope: true,
+		template: '<div></div>',
+		link: function (scope, element, attrs, ngModel) {
+
+			if(attrs.id === undefined)
+				console.error('Error: JIT (default-tree) requires id for base element!')
+
+			var tree = new JITTree(element[0]);
+
+			tree.load(ngModel.$modelValue);
+
+			scope.$watch(attrs.ngModel, function (value) {
+				tree.load(value);
+			});
+
+			var el = $(element);
+
+			if(attrs.visible === undefined)
+			{
+				tree.show();
+				tree.resize(el.width(), el.height(), true);
+			}
+			else
+				scope.$watch(attrs.visible, function (value) {
+					if(!value)
+						return
+
+					tree.show();
+					tree.load(ngModel.$modelValue);
+					tree.resize(el.width(), el.height(), true);
+				});
+
+			$(window).on('resize', function () {
+				if(attrs.visible === undefined || scope.$eval(attrs.visible))
+					tree.resize(el.width(), el.height(), true);
+			});
+
 		}
 	};
 });
@@ -914,7 +1005,7 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 		showSave(conll.join('\n'), 'output.conll', 'application/json');
 	};
 
-	$scope.selectedTabs = { all: false, edit: true, tree: false, tree2: false };
+	$scope.selectedTabs = { all: false, edit: true, projectiveTree: false, defaultTree: false, forceTree: false };
 
 	$scope.state = {
 		inProgress: false,
@@ -1047,17 +1138,6 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 		}
 	};
 
-	$scope.$watch('selectedTabs.tree', function (value) {
-		if(!value) return;
-		if(!$scope.selected)
-		{
-			setTree(createTree());
-			return;
-		}
-		$scope.selected.json = createTree($scope.selected.tokens);
-		setTree($scope.selected.json);
-	});
-
 	// $scope.$watch('selectedTabs.tree', function (value) {
 	// 	if(!value) return;
 	// 	if(!$scope.selected)
@@ -1069,242 +1149,11 @@ app.controller('CoNLLController', function ($scope, $location, $timeout, $http) 
 	// 	setTree($scope.selected.json);
 	// });
 
-	// TODO: tree watch $scope.selected and update
-	// TODO: tree as directive...
-	$scope.$watch('selected', function (value) {
-		if($scope.selectedTabs.tree)
-		{
-			if(!$scope.selected)
-			{
-				setTree(createTree());
-				return;
-			}
-			$scope.selected.json = createTree($scope.selected.tokens);
-			setTree($scope.selected.json);
-		}
-		// console.log('selected change:', value);
-	});
-
 	$scope.$watch('selected.tokens', function (value) {
 		if(!value)
 			return;
 		$scope.selected.text = $scope.extractText(value);
 	}, true);
-
-
-	// tree view
-	var createTree = function (data)
-	{
-		var tree = [];
-
-		var root = {
-			id: 0,
-			name: '*',
-			data: {
-				lemma: '*',
-				tag: 'R',
-				parentIndex: -1
-			},
-			children: []
-		};
-
-		tree.push(root);
-
-		if(!data)
-			return root;
-
-		for(var i in data)
-		{
-			var node = data[i];
-			tree.push({
-				id: node.index,
-				name: node.word,
-				data: {
-					lemma: node.lemma,
-					tag: node.tag,
-					parentIndex: node.parentIndex
-				},
-				children: []
-			});
-		}
-
-		for(var i in tree)
-		{
-			var child = tree[i];
-			if(child.data.parentIndex === -1)
-				continue;
-
-			tree[child.data.parentIndex].children.push(child);
-		}
-
-		return root;
-	};
-
-	var setTree = function (data) {
-		if(!tree)
-		{
-			$timeout(function () {
-				tree = initTree();
-				setTree(data);
-			}, 1);
-		}
-		else
-		{
-			tree.loadJSON(data);
-			tree.compute();
-			tree.onClick(tree.root, {
-				Move: {
-					// offsetY: 200
-				}
-			});
-		}
-	};
-
-
-	var tree;
-	var initTree = function () {
-		var tmp = new $jit.ST({
-			injectInto: 'treeView',
-			orientation: 'top',
-			// width: 800,
-			// height: 800,
-			//Add node/edge styles
-			Node: {
-			  overridable: false,  
-			   // type: 'piechart',
-			   // type: 'rectangle',
-			   width: 90,
-			   height: 36,
-			   // autoWidth: false,
-			   // autoHeight: false,
-			   // color: '#ccb',
-			   // color: '#',
-			   CanvasStyles: {
-					// fillStyle: '#daa',
-					fillStyle: '#ffffff',
-					// strokeStyle: '#fcc',
-					lineWidth: 2
-			   }
-			},
-			Edge: {
-				// color: '#999',
-				color: '#000000',
-				// type: 'quadratic:begin'
-				// type: 'line'
-			},
-			// Label: {
-			// 	type: 'SVG',
-			// 	color: 'red'
-		    // },
-			//Parent-children distance
-			levelDistance: 15,
-			levelsToShow: 20,
-			duration: 0,
-			constrained: false,
-
-			Navigation: {
-				enable: true,
-				panning: true,
-			},
-
-			//Add styles to node labels on label creation
-			onCreateLabel: function(domElement, node){
-				//add some styles to the node label
-				var style = domElement.style;
-				domElement.id = node.id;
-				style.border = '1px solid black';
-				style.color = 'black';
-				style.fontSize = '15px';
-				style.textAlign = 'left';
-				style.width = "89px";
-				style.height = "36x";
-				// style.height = "24px";
-				// style.paddingTop = "22px";
-				style.cursor = 'pointer';
-				var name = node.name;
-				var tag = node.data.tag;
-				var red = '';
-				if(node.data.reduction)
-				{
-					parts = node.data.reduction.split('(');
-					if(parts.length == 2)
-						name = parts[1].split(')')[0];
-					tag = parts[0];
-					red = '<i>red.: </i>';
-				}
-				domElement.innerHTML = red + '<b>' + name + '<br/><i>' + (tag ? tag : '&nbsp') + '</i></b>';
-				// domElement.onclick = function() {
-				//   module.st.onClick(node.id, {
-				// 		Move: {
-				// 			offsetY: 90
-				// 			// offsetY: -90
-				// 		}
-				// 	});  
-				// };
-			},
-
-//Add the name of the node in the correponding label
-        //and a click handler to move the graph.
-        //This method is called once, on label creation.
-        onCreateLabel0: function(domElement, node){
-            domElement.firstChild
-              .appendChild(document
-                .createTextNode(node.name));
-            domElement.onclick = function(){
-                rgraph.onClick(node.id, {
-                  hideLabels: false
-                });
-            };
-        },
-        //Change some label dom properties.
-        //This method is called each time a label is plotted.
-        onPlaceLabel0: function(domElement, node){
-            var bb = domElement.getBBox();
-			domElement.setAttribute('transform', 'translate('+domElement.getAttribute('x')+','+domElement.getAttribute('y')+')');
-			return;
-            if(bb) {
-              //center the label
-              var x = domElement.getAttribute('x');
-              var y = domElement.getAttribute('y');
-              //get polar coordinates
-              var p = node.pos.getp(true);
-              //get angle in degrees
-              var pi = Math.PI;
-              var cond = (p.theta > pi/2 && p.theta < 3* pi /2);
-              if(cond) {
-                domElement.setAttribute('x', x - bb.width );
-                domElement.setAttribute('y', y - bb.height );
-              } else if(node.id == rgraph.root) {
-                domElement.setAttribute('x', x - bb.width/2); 
-              }
-              
-              var thetap =  cond? p.theta + pi : p.theta;
-                domElement.setAttribute('transform', 'rotate('
-                + thetap * 360 / (2 * pi) + ' ' + x + ' ' + y + ')');
-            }
-		}
-
-		});
-
-		// var el = $('#treeView > div, canvas');
-		// el.removeAttr('style').removeAttr('width').removeAttr('height').addClass('fill').addClass('full-size');
-		// console.log(el);
-		
-		var p = $('#treeView');
-
-		$timeout(function () {
-			tmp.canvas.resize(p.width(), p.height());
-		}, 1);
-
-		$(window).on('resize', function () {
-			var tx = tmp.canvas.translateOffsetX;
-			var ty = tmp.canvas.translateOffsetY;
-			tmp.canvas.resize(p.width(), p.height());
-			tmp.canvas.translate(tx, ty);
-		});
-
-		return tmp;
-	};
 });
 
 

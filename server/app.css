@@ -370,6 +370,8 @@ ul.nav.nav-tabs {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+
+	cursor: default;
 }
 
 button.btn {
@@ -437,14 +439,9 @@ table.conll-table input.edit-cell {
 	margin-bottom: 0px;
 }
 
-#treeView {
-    /* width: 1200px; */
-    /* width: 98%; */
-    /* height: 600px; */
-    /* height: 500px; */
+#defaultTree {
 	overflow: hidden;
     position: absolute;
-    /* top: 0; */
     top: 0;
     bottom: 0;
 	left: 0;
