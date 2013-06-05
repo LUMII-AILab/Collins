@@ -590,7 +590,9 @@ app.directive('forceTree', function ($timeout) {
 			if(attrs.visible === undefined)
 			{
 				// tree.show();
-				tree.resize(el.width(), el.height());
+				$timeout(function () {
+					tree.resize(el.width(), el.height());
+				});
 			}
 			else
 				scope.$watch(attrs.visible, function (value) {
