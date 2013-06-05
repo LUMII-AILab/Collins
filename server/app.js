@@ -595,14 +595,16 @@ app.directive('forceTree', function ($timeout) {
 				});
 			}
 			else
+			{
 				scope.$watch(attrs.visible, function (value) {
 					if(!value)
 						return
 
 					// tree.show();
-					tree.load(ngModel.$modelValue);
 					tree.resize(el.width(), el.height());
+					tree.load(ngModel.$modelValue);
 				});
+			}
 
 			$(window).on('resize', function () {
 				if(attrs.visible === undefined || scope.$eval(attrs.visible))
