@@ -115,9 +115,9 @@ class CorefResolver(object):
 
 if __name__ == "__main__":
 
-    coref = CorefResolver("~/Work/LVCoref-semi-bin/lvcoref.sh")
+    coref = CorefResolver("~/Work/LVCoref/lvcoref.sh")
     import os
-    print coref(open(os.path.expanduser('~/coref2.conll')).read());
-    print coref(open(os.path.expanduser('~/coref2.conll')).read());
+    print coref(open(os.path.expanduser('./coref_test.conll')).read());
+    print coref(open(os.path.expanduser('./coref_test.conll')).read());
 
 
