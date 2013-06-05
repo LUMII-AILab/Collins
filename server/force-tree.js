@@ -46,6 +46,8 @@ function DirectedForceTree(svg) {
 		if(tokens[0].index !== 0)
 			addRoot();
 
+		// TODO: saskaitīt, cik katram mezglam ir apakšmezglu un pamatojoties uz to mainīt mezglu lādiņus
+
 		for(var i in tokens)
 		{
 			var token = tokens[i];
@@ -99,6 +101,11 @@ function DirectedForceTree(svg) {
 
 			this.data = convert(tokens);
 
+			var root = this.data.nodes[0];
+			root.fixed = true;
+			root.x = this.width / 2;
+			root.y = this.height / 10;
+
 			this.link = g.selectAll('line').data(this.data.links).enter().append('svg:line')
 				.style('stroke', function (d) { return d3.rgb('black'); });
 
@@ -118,7 +125,9 @@ function DirectedForceTree(svg) {
 	var g = svg.append('g');
 
 	var force = d3.layout.force()
-		.charge(-300)
+		.gravity(0.3)
+		// .charge(-300)
+		.charge(-500)
 		.linkDistance(40)
 		.size([object.width, object.height]);
 
