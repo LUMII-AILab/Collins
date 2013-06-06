@@ -680,7 +680,10 @@ void parse(Tokens& tokens, const FeatureVector& features)
 		{
 			int j = i + w;				// j indekss
 
-			for(int g=-1; g<n; g++)		// parent/grandparent - g indekss
+			// multiroot gadījumā g ir no -1
+			// for(int g=-1; g<n; g++)		// parent/grandparent - g indekss
+			// single root gadījumā g ir no 0, kas atbilst root tokenam
+			for(int g=0; g<n; g++)		// parent/grandparent - g indekss
 			{
 				if(g >= i && g <= j)	// jābūt ārpus [i,j] intervāla
 					continue;
@@ -790,7 +793,38 @@ void parse(Tokens& tokens, const FeatureVector& features)
 	}
 
 	// salinko parentus kokā
-	tokens.link(&spans(-1, 0, tokens.size()-1).complete);
+	
+	// vispārīgāks gadījums: multiroot
+	// tokens.link(&spans(-1, 0, tokens.size()-1).complete);
+	
+	// ja grib single root, tad ērtākais būs manuāli sameklēt dalījuma punktu un uzbūvēt pagaidu pilno spanu, kas ietvers incomplete spanu
+	// (ar bultu uz savienojuma vietu) ar deģenerētu root spanu un pa kreisi vērsto spanu complete spanu + pa labi vērsto komplete spanu
+	int maxm;
+	for(int m=1; m<n; m++)
+	{
+		const Span& rcs = spans(0, m, 1).complete;
+		const Span& cs = spans(0, m, n-1).complete;
+		if(m == 1 || rcs.score + cs.score > score)
+		{
+			maxm = m;
+			score = rcs.score + cs.score;
+		}
+	}
+
+	// TODO: single root gadījumā nav vajadzīgi tie complete spani,
+	// kuriem g = 0 un vismaz viens no galapunktiem nepieskaras teikuma galapunktiem, t.i., =1 vai =n-1
+
+	Span ics;
+	Span root;
+	root.terminal(nullptr, &tokens[0]);
+	ics.ics.cs = &root;
+	ics.ics.rcs = &spans(0, maxm, 1).complete;
+	ics.incomplete();
+	Span rootcs;
+	rootcs.cs.ics = &ics;
+	rootcs.cs.cs = &spans(0, maxm, n-1).complete;
+	rootcs.complete();
+	tokens.link(&rootcs);
 }
 
 
