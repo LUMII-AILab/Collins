@@ -949,6 +949,139 @@ bool train(TrainCase::Arguments& arguments, FeatureVector& featureVector, IndexM
 	return true;
 }
 
+bool verify(TrainCase::Arguments& arguments, const FeatureVector& featureVector, const IndexMap& idMap_, streams& istreams)
+{
+	int limit = arguments.checkLimit;
+	int start = arguments.checkStart;
+	int stop = arguments.checkStop;
+	bool allowNonProjective = arguments.allowCheckNonProjective;
+	
+	// limits tiek norādīts derīgajos tokenus: +1 ir dēļ root tokena "*"
+	if(limit > 0)
+		limit++;
+
+	int checkUASTotalMatches;
+	int checkUASTotalCount;
+	checkUASTotalCount = 0;
+	checkUASTotalMatches = 0;
+	int count = 0;		// pārbaudīto koku skaits
+	int j = 0;
+
+	cout << "Verification:" << endl;
+
+	// pa vienam kokam no ievadstraumes, parsē, rezultāts izvadstraumē
+	while(streams::stream& stream = istreams.next())
+	{
+		while(stream)
+		{
+			// index apakškarte, kuru var pārvietot arī uz parent scope, ja tas palielina ātrdarbību
+			// doma ir tāda, ka katrs ievadkoks ir neatkarīgs no otra, tāpēc kad viens ir pabeigts,
+			// tad nav vajadzīgs uzglabāt nākamā koka identifikātoru informāciju, rezultātā
+			// identifikātoru skaits nepalielinās un nav risks potenciālam overflow
+			IndexMap idMap(idMap_);
+
+			Tokens golden(idMap);
+
+			try
+			{
+				stream >> golden;
+
+				if(!golden)
+					continue;
+					// parse(tree, featureVector);
+
+				// zelta standarts
+				// const Tokens& golden = checkTrees[j];
+
+				// informācija terminālī par tekošo koku
+				cout << setw(5) << j << " / [" << start << "," << stop << ")";
+				cout << setw(8) << golden.size()-1 << " # ";
+
+				bool projective = golden.projective();
+
+				if(projective)
+					cout << "P    ";
+				else
+					cout << "NP   ";
+
+				// neprojektīvs
+				// if(!allowNonProjective && !golden.projective())
+				if(!allowNonProjective && !projective)
+				{
+					cout << "Non-Projective" << endl;
+					continue;
+				}
+
+				// izmērs pārāk liels
+				if(limit > 0 && golden.size() > limit)
+				{
+					cout << "Too Large" << endl;
+					continue;
+				}
+
+				// neliela atstarpe
+				cout << "     ";
+				cout.flush();
+
+				// kopija
+				Tokens tree(golden);
+				
+#ifdef ANSI
+				// parsēšanas mēģinājums
+				double duration = parse(tree, featureVector);
+#else
+				// double duration = parse(tree, featureVector, false);
+				Timing timing;
+				timing.start();
+				parse(tree, featureVector);
+				timing.stop();
+				double duration = timing;
+#endif
+
+				// TODO: remove this, for analysis only
+				// tree.examine(featureVector, golden);
+
+				// double similarity = tree.compare(golden);
+				int matches = tree.compare(golden);
+				checkUASTotalCount += tree.size()-1;
+				checkUASTotalMatches += matches;
+
+				double similarity = (double)matches/(double)(tree.size()-1);
+
+				cout << setw(8) << setprecision(4) << defaultfloat << similarity * 100 << " %        ";
+				outputDuration(duration);
+				cout << endl;
+
+				// checkResults.emplace_back(j, matches, tree.size()-1, duration);
+
+				count++;
+
+			}
+			catch(exception& e)
+			{
+				cerr << "error: " << e.what() << endl;
+
+				// vēl ir jāpabeidz ielasīt līdz tukšajai rindiņai
+				string line;
+				while(getline(stream, line))
+				{
+					if(line.size() == 0 || line == "\n")
+						break;
+				}
+
+				// ostream << endl;	// tukšs rezultāts
+			}
+
+			j += 1;
+		}
+	}
+
+	// gala rezultāta izvade terminālī
+	cout << "Total score: " << setprecision(4) << 100 * (double)checkUASTotalMatches/(double)checkUASTotalCount << " %" << endl;
+
+	return true;
+}
+
 bool parse(TrainCase::Arguments& arguments, const FeatureVector& featureVector, const IndexMap& idMap_,
 		streams& istreams, std::basic_ostream<char>& ostream)
 {

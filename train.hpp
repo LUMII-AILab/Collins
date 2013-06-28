@@ -355,6 +355,7 @@ private:
 
 
 bool train(TrainCase::Arguments& arguments, FeatureVector& featureVector, IndexMap& idMap, streams& istreams);
+bool verify(TrainCase::Arguments& arguments, const FeatureVector& featureVector, const IndexMap& idMap, streams& istreams);
 bool parse(TrainCase::Arguments& arguments, const FeatureVector& featureVector, const IndexMap& idMap,
 		streams& istreams, std::basic_ostream<char>& ostream);
 

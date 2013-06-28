@@ -137,11 +137,12 @@ bool find_file(fs::path& filePath, const fs::path& possibleBaseDirAbsolute, stri
 			display = (baseDirDisplay / make_relative(possibleBaseDirAbsolute, filePathAbsolute)).string();
 		}
 		else
-		{
-			filePathAbsolute = fs::canonical(filePath);
-			filePath = make_relative(fs::current_path(), filePathAbsolute);
-			display = (fs::path(".") / filePath).string();
-		}
+			return false;
+		// {
+		// 	filePathAbsolute = fs::canonical(filePath);
+		// 	filePath = make_relative(fs::current_path(), filePathAbsolute);
+		// 	display = (fs::path(".") / filePath).string();
+		// }
 	}
 
 	return true;
@@ -473,6 +474,7 @@ int main(int argc, char const* argv[])
 	// Piezīme: ievadfaili ir eksistējoši, tādēļ 4 punkta gadījumā tie var neatrasties bāzes direktorijā, bet atrasties relatīvi pret tekošo.
 	// 
 	
+	fs::path currentDirectory = fs::canonical(".");
 	fs::path dataDirectory(expand(basedir));
 	fs::path dataDirectoryAbsolute = fs::canonical(dataDirectory);
 	fs::path configDirectory(expand(confdir));
@@ -572,8 +574,11 @@ int main(int argc, char const* argv[])
 			if(!find_file(featureVectorFile, dataDirectoryAbsolute, featureVectorFileDisplay,
 				dataDirectoryPlaceholder, dataDirectory.is_absolute()))
 			{
-				cerr << "Error: invalid feature vector file: " << featureVectorFile.string() << endl;
-				return 0;
+				if(!find_file(featureVectorFile, currentDirectory, featureVectorFileDisplay, ".", false))
+				{
+					cerr << "Error: invalid feature vector file: " << featureVectorFile.string() << endl;
+					return 0;
+				}
 			}
 		}
 
@@ -583,8 +588,11 @@ int main(int argc, char const* argv[])
 			if(!find_file(identificatorMapFile, dataDirectoryAbsolute, identificatorMapFileDisplay,
 				dataDirectoryPlaceholder, dataDirectory.is_absolute()))
 			{
-				cerr << "Error: invalid identificator map file: " << identificatorMapFile.string() << endl;
-				return 0;
+				if(!find_file(identificatorMapFile, currentDirectory, identificatorMapFileDisplay, ".", false))
+				{
+					cerr << "Error: invalid identificator map file: " << identificatorMapFile.string() << endl;
+					return 0;
+				}
 			}
 		}
 	}
@@ -954,25 +962,34 @@ int main(int argc, char const* argv[])
 
 	if(parseFiles.size() > 0 || stdin)
 	{
-		// message: we are ready
-		
-		cerr << "ready" << endl;
-		
-		ofstream file(outputFile.string());
-		ostream cnull(0);
-		ostream& out = file ? file : (stdout ? cout : cnull);
-
-		if(stdin)
-		{
-			cinstream streams;
-
-			::parse(defaultArguments, featureVector, idMap, streams, out);
-		}
-		else
+		if(!stdin && parseFiles.size() > 0 && verify)
 		{
 			filestreams streams(parseFiles);
 
-			::parse(defaultArguments, featureVector, idMap, streams, out);
+			::verify(defaultArguments, featureVector, idMap, streams);
+		}
+		else
+		{
+			// message: we are ready
+			
+			cerr << "ready" << endl;
+			
+			ofstream file(outputFile.string());
+			ostream cnull(0);
+			ostream& out = file ? file : (stdout ? cout : cnull);
+
+			if(stdin)
+			{
+				cinstream streams;
+
+				::parse(defaultArguments, featureVector, idMap, streams, out);
+			}
+			else
+			{
+				filestreams streams(parseFiles);
+
+				::parse(defaultArguments, featureVector, idMap, streams, out);
+			}
 		}
 	}
 
