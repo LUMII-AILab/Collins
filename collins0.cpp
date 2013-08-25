@@ -868,11 +868,22 @@ string normalizedTag(const string& tag)
 	{
 		// mpn(P,vp,MPN) :- P=[v,_,_,p,_,M,P,N|_],atom_chars(MPN,[M,P,N]),!.
 		
-		t += 'p';
+		t[0] = 'd';
+		// t += 'p';
 		// t += tag[3]; 	// p
 		t += tag[5]; /* 0.42 */
 		t += tag[6]; /* 0.42 */
 		t += tag[7]; 
+	}
+	else if(tag[0] == 'v')
+	{
+		// mpn(P,vp,MPN) :- P=[v,_,_,p,_,M,P,N|_],atom_chars(MPN,[M,P,N]),!.
+		
+		// t += tag[1];	// tips
+		// t += tag[3];	// izteiksme
+		t += tag[4]; 	// laiks
+		t += tag[7];	// persona
+		t += tag[8];	// skaitlis
 	}
 	else
 	{
