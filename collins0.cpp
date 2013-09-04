@@ -1066,7 +1066,7 @@ bool Tokens::add(const string& line, bool useGeneralTags)
 	if(part != end)
 	{
 		string pi = boost::copy_range<std::string>(*part++);
-		if(!pi.empty())
+		if(!pi.empty() && pi != "_")
 			parentIndex = stoi(pi);
 	}
 	// }
