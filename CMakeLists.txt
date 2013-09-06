@@ -26,10 +26,14 @@ endif()
 
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-	# enable C++11 and libc++
-	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
-	#set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -O2 -g")
-	#set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -O2 -g -arch i386 -arch x86_64")
+	if(APPLE)
+		# enable C++11 and libc++
+		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+		#set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -O2 -g")
+		#set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -O2 -g -arch i386 -arch x86_64")
+	else()
+		set(CMAKE_CXX_FLAGS "-std=c++11")
+	endif()
 else()
 	set(CMAKE_CXX_FLAGS "-std=c++11 -fpermissive")
 endif()
