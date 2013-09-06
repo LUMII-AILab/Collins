@@ -403,7 +403,7 @@ void TrainCase::check(const FeatureVector& featureVector)
 
 		double similarity = (double)matches/(double)(tree.size()-1);
 
-		cout << setw(8) << setprecision(4) << defaultfloat << similarity * 100 << " %        ";
+		cout << setw(8) << setprecision(4) << /* defaultfloat << */ similarity * 100 << " %        ";
 		outputDuration(duration);
 		cout << endl;
 
@@ -707,7 +707,7 @@ void TrainCases::summary()
 
 	cout << "Total parsed token count: " << totalTokens << endl;
 	cout << "Total matched token count: " << totalMatchedTokens << endl;
-	cout << "Total UAS: " << setprecision(4) << defaultfloat << 100.0*(double)totalMatchedTokens/(double)totalTokens << " %" << endl;
+	cout << "Total UAS: " << setprecision(4) << /* defaultfloat << */ 100.0*(double)totalMatchedTokens/(double)totalTokens << " %" << endl;
 
 	cout << "Total training time: ";
 	outputDuration(totalTrainTime);
@@ -1048,7 +1048,7 @@ bool verify(TrainCase::Arguments& arguments, const FeatureVector& featureVector,
 
 				double similarity = (double)matches/(double)(tree.size()-1);
 
-				cout << setw(8) << setprecision(4) << defaultfloat << similarity * 100 << " %        ";
+				cout << setw(8) << setprecision(4) << /* defaultfloat << */ similarity * 100 << " %        ";
 				outputDuration(duration);
 				cout << endl;
 

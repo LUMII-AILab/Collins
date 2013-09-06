@@ -1126,9 +1126,9 @@ bool Tokens::extractFeatures(FeatureVector& targetFeatureVector) const
 
 			// noskaidro vai ir h deģenerētais gadījums
 			bool dh = true;
-			for(const Token* token : token.parent()->_children)
+			for(const Token* ctoken : token.parent()->_children)
 			{
-				const int x = token->index();
+				const int x = ctoken->index();
 				// ja starp h un m atrodas arī kaut kāds x, kas ir h childs (m siblings), tad nav h deģenerētais gadījums
 				if((h < m && h < x && x < m) || (m < h && m < x && x < h))
 					dh = false;
@@ -1137,9 +1137,9 @@ bool Tokens::extractFeatures(FeatureVector& targetFeatureVector) const
 			// noskaidro vai ir m iekšējais un ārējais deģenerētais gadījums
 			bool dim = true;
 			bool dom = true;
-			for(const Token* token : token._children)
+			for(const Token* ctoken : token._children)
 			{
-				const int x = token->index();
+				const int x = ctoken->index();
 				// ja ir kāds m childs, kas atrodas iekšpusē, tad nav m iekšējais deģenerētais gadījums
 				if((h < m && x < m) || (m < h && m < x))
 					dim = false;

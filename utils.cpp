@@ -28,7 +28,7 @@ using namespace std;
 
 void outputDuration(double duration)
 {
-	cout << setprecision(7) << defaultfloat << duration << " s";
+	cout << setprecision(7) << /* defaultfloat << */ duration << " s";
 	if(duration > 60)
 	{
 		cout << fixed;
