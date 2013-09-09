@@ -56,6 +56,7 @@ public:
 		_lemmaID = s._lemmaID;
 		_tagID = s._tagID;
 		_fullTagID = s._fullTagID;
+		_features = s._features;
 	}
 
 	bool operator==(const Token& t) const { return compare(t); }
@@ -77,6 +78,8 @@ public:
 	const std::string& lemma() const { return _lemma; }
 	const std::string& tag() const { return _tag; }
 	const std::string& fullTag() const { return _fullTag; }
+
+	const std::string& features() const { return _features; }
 
 	const Token* parent() const { return _parent; }
 
@@ -106,6 +109,7 @@ private:
 	std::string _lemma;		// default: empty
 	std::string _tag;		// default: empty
 	std::string _fullTag;	// default: empty
+	std::string _features;
 	// atbilstošie identifikātori
 	id _wordID;
 	id _lemmaID;
@@ -128,7 +132,8 @@ public:
 	Tokens(IndexMap& identificatorMap) : idMap(identificatorMap) { addRoot(); }
 	// Tokens(const Tokens& s) : idMap(s.idMap) { tokens = s.tokens; }
 
-	void add(const std::string& word, const std::string& lemma, const std::string& tag, const std::set<std::string>& tags, int parentIndex);
+	void add(const std::string& word, const std::string& lemma, const std::string& tag, const std::set<std::string>& tags, int parentIndex,
+			const std::string& features = "_");
 	bool add(const std::string& line, bool useGeneralTags = false);
 	void reserve(int size) { tokens.reserve(size); }
 	void clear() { tokens.clear(); addRoot(); /* status = Unchecked; */ }

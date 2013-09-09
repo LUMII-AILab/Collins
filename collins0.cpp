@@ -1013,7 +1013,7 @@ void Token::printTree(int level) const
 		_children[i]->printTree(level+1);
 }
 
-void Tokens::add(const string& word, const string& lemma, const string& tag, const set<string>& tags, int parentIndex)
+void Tokens::add(const string& word, const string& lemma, const string& tag, const set<string>& tags, int parentIndex, const string& features)
 {
 	tokens.emplace_back();
 	Token& token = tokens.back();
@@ -1029,6 +1029,8 @@ void Tokens::add(const string& word, const string& lemma, const string& tag, con
 	token._lemmaID = idMap(token._lemma);
 	token._tagID = idMap(token._tag);
 	token._fullTagID = idMap(token._fullTag);
+
+	token._features = features;
 
 	// TODO: more here
 }
@@ -1101,7 +1103,7 @@ bool Tokens::add(const string& line, bool useGeneralTags)
 		}
 	}
 
-	add(word, lemma, tag, tags, parentIndex);
+	add(word, lemma, tag, tags, parentIndex, features);
 
 	return true;
 }
@@ -1337,7 +1339,8 @@ void Tokens::output(std::ostream& stream) const
 		stream << "\t";
 		stream << token.fullTag();
 		stream << "\t";
-		stream << "_";		// nav features saglabātas
+		// stream << "_";		// nav features saglabātas
+		stream << token.features();		// features
 		stream << "\t";
 		stream << token.parentIndex();
 		stream << endl;
