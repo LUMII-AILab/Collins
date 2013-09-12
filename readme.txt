@@ -7,7 +7,7 @@ Requirements
 Optional
 --------
 
-Sparsehash : https://code.google.com/p/sparsehash/
+Sparsehash : https://code.google.com/p/sparsehash/ or install from supplied tarball
 
 
 Compiling
