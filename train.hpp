@@ -183,6 +183,7 @@ public:
 			permutate = true;
 			useGeneralTags = false;
 			quiet = false;
+			ner = false;
 		}
 
 		Arguments(const Arguments& arguments) {
@@ -203,6 +204,7 @@ public:
 			permutate = arguments.permutate;
 			useGeneralTags = arguments.useGeneralTags;
 			quiet = arguments.quiet;
+			ner = arguments.ner;
 
 			trainTrees = arguments.trainTrees;
 			checkTrees = arguments.checkTrees;
@@ -230,6 +232,7 @@ public:
 		Arguments& setUseGeneralTags(bool value) { useGeneralTags = value; return *this; }
 		Arguments& setIDMap(IndexMap& value) { idMap = value; return *this; }
 		Arguments& setQuiet(bool value) { quiet = value; return *this; }
+		Arguments& setNER(bool value) { ner = value; return *this; }
 
 		ConfigValue<int> featureVectorSize;
 		ConfigValue<int> trainStart;
@@ -252,6 +255,7 @@ public:
 		ConfigValue<bool> permutate;
 		ConfigValue<bool> useGeneralTags;
 		ConfigValueByPtr<IndexMap> idMap;
+		ConfigValue<bool> ner;
 
 		IndexMap& getIDMap()
 		{

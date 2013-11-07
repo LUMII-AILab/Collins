@@ -57,6 +57,7 @@ public:
 		_tagID = s._tagID;
 		_fullTagID = s._fullTagID;
 		_features = s._features;
+		_namedEntityType = s._namedEntityType;
 	}
 
 	bool operator==(const Token& t) const { return compare(t); }
@@ -80,6 +81,8 @@ public:
 	const std::string& fullTag() const { return _fullTag; }
 
 	const std::string& features() const { return _features; }
+
+	const std::string& namedEntityType() const { return _namedEntityType; }
 
 	const Token* parent() const { return _parent; }
 
@@ -110,6 +113,7 @@ private:
 	std::string _tag;		// default: empty
 	std::string _fullTag;	// default: empty
 	std::string _features;
+	std::string _namedEntityType;
 	// atbilstošie identifikātori
 	id _wordID;
 	id _lemmaID;
@@ -133,7 +137,7 @@ public:
 	// Tokens(const Tokens& s) : idMap(s.idMap) { tokens = s.tokens; }
 
 	void add(const std::string& word, const std::string& lemma, const std::string& tag, const std::set<std::string>& tags, int parentIndex,
-			const std::string& features = "_");
+			const std::string& features = "_", const std::string& namedEntityType = "");
 	bool add(const std::string& line, bool useGeneralTags = false);
 	void reserve(int size) { tokens.reserve(size); }
 	void clear() { tokens.clear(); addRoot(); /* status = Unchecked; */ }
@@ -168,6 +172,8 @@ public:
 	bool check() const;
 
 	void output(std::ostream& stream) const;
+
+	bool ner;
 
 private:
 

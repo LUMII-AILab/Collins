@@ -238,6 +238,7 @@ int main(int argc, char const* argv[])
 			("stdout", "output .conll to stdout")
 			("confdir,c", po::value<string>(),
 			 	"set confdir in path confdir/<feature vector or id map relative filenames> (default: current directory)")
+			("ner", "expect input from NER (parent index column contains named entity type from NER), use NER as span boundary heuristics")
 		;
 
 		po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -341,6 +342,9 @@ int main(int argc, char const* argv[])
 		{
 			confdir = vm["confdir"].as<string>();
 		}
+
+		if(vm.count("ner"))
+			defaultArguments.ner = true;
 
 		if(vm.count("load"))
 			load = true;

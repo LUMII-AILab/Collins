@@ -1098,6 +1098,8 @@ bool parse(TrainCase::Arguments& arguments, const FeatureVector& featureVector, 
 
 			Tokens tree(idMap);
 
+			tree.ner = arguments.ner;
+
 			try
 			{
 				stream >> tree;

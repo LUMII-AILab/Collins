@@ -672,6 +672,78 @@ void parse(Tokens& tokens, const FeatureVector& features)
 	vector<Feature> localFeatures;
 	localFeatures.reserve(256);
 
+
+	// mehānisms, kas ļauj izmantot NER noteiktās spanu robežas
+
+	// struktūra, lai atzīmētu stāvokli
+	typedef enum {
+		TokenSpanNone = 0,
+		TokenSpanEdge = 0x10,
+		TokenSpanBegin = 0x11,
+		TokenSpanEnd = 0x12,
+		TokenSpanInner = 0x100
+	} TokenSpanType;
+
+	typedef struct {
+		int nr;
+		TokenSpanType type;
+	} TokenSpanInfo;
+
+	vector<TokenSpanInfo> tokenSpans(n, {0, TokenSpanNone});
+
+	if(true)
+	{
+		// izveido tokenu spanu nr. karti
+		int currentNr = 1;
+		for(int i=1; i<n; i++) // 0-tais ir root
+		{
+			// cout << tokens[i].namedEntityType() << endl;
+			if(!tokens[i].namedEntityType().empty())
+			{
+				if(tokens[i].namedEntityType() != tokens[i-1].namedEntityType())
+					currentNr += 1;
+				tokenSpans[i].nr = currentNr;
+			}
+		}
+		// dzēš tos, kuru izmēri ir tikai viens tokens
+		for(int i=1; i<n-1; i++)
+		{
+			if(tokenSpans[i-1].nr != tokenSpans[i].nr && tokenSpans[i].nr != tokenSpans[i+1].nr)
+				tokenSpans[i].nr = 0;
+		}
+		// apstrādā pēdējo tokenu
+		if(n == 1 || tokenSpans[n-2].nr != tokenSpans[n-1].nr)
+			tokenSpans[n-1].nr = 0;
+
+		// uzstāda tipu
+		for(int i=1; i<n-1; i++)
+		{
+			if(tokenSpans[i].nr > 0 && tokenSpans[i].nr != tokenSpans[i-1].nr)
+				tokenSpans[i].type = TokenSpanBegin;
+			// nedrīkstētu būt tokenu kopa, kas sastāv tikai no viena tokena, tāpēc else
+			else if(tokenSpans[i].nr > 0 && tokenSpans[i].nr != tokenSpans[i+1].nr)
+				tokenSpans[i].type = TokenSpanEnd;
+			else if(tokenSpans[i].nr > 0)
+				tokenSpans[i].type = TokenSpanInner;
+		}
+		// apstrādā pēdējo tokenu
+		if(tokenSpans[n-1].nr > 0)
+			tokenSpans[n-1].type = TokenSpanEnd;
+
+		// debug output
+		// for(int i=0; i<n; i++) // 0-tais ir root
+		// {
+		// 	cout << i << " : " << tokenSpans[i].nr << " type=" << tokenSpans[i].type << endl;
+		// }
+	}
+
+	// potenciāli nelegāli spani ir tikai tie, kuriem abos galos ir atšķirīgi nr
+	// nelegāls spans, ja viens no galiem ir inner un otrs no galiem ir ar citu nr
+	// nelegāls spans, ja viens no galiem ir edge, bet otrs ir ar citu nr tajā pašā pusē, t.i.,
+	// ja begin, tad ar mazāku indeksu, ja end, tad ar lielāku indeksu
+
+#define INVALID_SPAN(i,j) (tokenSpans[i].nr != tokenSpans[j].nr && ((tokenSpans[i].type != TokenSpanBegin && tokenSpans[i].type != TokenSpanNone) || (tokenSpans[j].type != TokenSpanEnd && tokenSpans[j].type != TokenSpanNone)))
+
 	FeatureVector::Value score;
 
 	for(int w=0; w<n; w++)	// span'a platums
@@ -679,6 +751,9 @@ void parse(Tokens& tokens, const FeatureVector& features)
 		for(int i=0; i<n-w; i++)	// i indekss
 		{
 			int j = i + w;				// j indekss
+
+			// if(INVALID_SPAN(i,j))
+			// 	continue;
 
 			// multiroot gadījumā g ir no -1
 			// for(int g=-1; g<n; g++)		// parent/grandparent - g indekss
@@ -704,41 +779,59 @@ void parse(Tokens& tokens, const FeatureVector& features)
 						Span& span = gij.incomplete;
 						// Span& span = spans(g, i, j).incomplete;
 
+						bool first = true;
 						for(int r=i; r<j; r++)
 						{
 							const Span& cs = spans(g, i, r).complete;
 							const Span& rcs = spans(i, j, r+1).complete;
+
+							if(cs.type == Span::Undefined || rcs.type == Span::Undefined)
+								continue;
+
 							score = cs.score + rcs.score;
 
 							if(r==i || r+1 == j)	// deģenerētie gadījumi
 								score += scoreDegenICS(features, localFeatures, cs, rcs);
 
-							if(r == i || score > span.score)	// bez r == i neiztikt, jo score var būt mazāks par 0, nav zināma minimālā vērtība
+							// if(r == i || score > span.score)	// bez r == i neiztikt, jo score var būt mazāks par 0, nav zināma minimālā vērtība
+							if(first || score > span.score)	// bez r == i neiztikt, jo score var būt mazāks par 0, nav zināma minimālā vērtība
 								span.set(cs, rcs, score);
+
+							first = false;
 						}
 
-						span.incomplete(features, localFeatures);
+						if(!first)
+							span.incomplete(features, localFeatures);
 					}
 					
 					// complete = incomplete + complete
+					if(!INVALID_SPAN(i,j))
 					{
 						Span& span = gij.complete;
 						// Span& span = spans(g, i, j).complete;
 
+						bool first = true;
 						for(int m=i+1; m<=j; m++)
 						{
 							const Span& ics = spans(g, i, m).incomplete;
 							const Span& cs = spans(i, m, j).complete;
+
+							if(cs.type == Span::Undefined || ics.type == Span::Undefined)
+								continue;
+
 							score = ics.score + cs.score;
 							
 							if(m == j)
 								score += scoreDegenCS(features, localFeatures, ics);
 
-							if(m == i+1 || score > span.score)
+							// if(m == i+1 || score > span.score)
+							if(first || score > span.score)
 								span.set(ics, cs, score);
+							first = false;
 						}
 
-						span.complete();
+						if(!first)
+							span.complete();
 					}
 				}
 				
@@ -751,41 +844,61 @@ void parse(Tokens& tokens, const FeatureVector& features)
 						Span& span = gji.incomplete;
 						// Span& span = spans(g, j, i).incomplete;
 
+						bool first = true;
 						for(int r=i; r<j; r++)
 						{
+							if(INVALID_SPAN(i,r) || INVALID_SPAN(r+1,j))
+								continue;
+
 							const Span& cs = spans(g, j, r+1).complete;
 							const Span& rcs = spans(j, i, r).complete;
+
+							if(cs.type == Span::Undefined || rcs.type == Span::Undefined)
+								continue;
+
 							score = cs.score + rcs.score;
 
 							if(r==i || r+1 == j)
 								score += scoreDegenICS(features, localFeatures, cs, rcs);
 
-							if(r == i || score > span.score)
+							// if(r == i || score > span.score)
+							if(first || score > span.score)
 								span.set(cs, rcs, score);
+							first = false;
 						}
 
-						span.incomplete(features, localFeatures);
+						if(!first)
+							span.incomplete(features, localFeatures);
 					}
 
 					// reverse complete = incomplete + complete
+					if(!INVALID_SPAN(i,j))
 					{
 						Span& span = gji.complete;
 						// Span& span = spans(g, j, i).complete;
 
+						bool first = true;
 						for(int m=i; m<j; m++)
 						{
 							const Span& ics = spans(g, j, m).incomplete;
 							const Span& cs = spans(j, m, i).complete;
+
+							if(cs.type == Span::Undefined || ics.type == Span::Undefined)
+								continue;
+
 							score = ics.score + cs.score;
 							
 							if(m == i)
 								score += scoreDegenCS(features, localFeatures, ics);
 
-							if(m == i || score > span.score)
+							// if(m == i || score > span.score)
+							if(first || score > span.score)
 								span.set(ics, cs, score);
+							first = false;
 						}
 
-						span.complete();
+						if(!first)
+							span.complete();
 					}
 				}
 			}
@@ -804,6 +917,10 @@ void parse(Tokens& tokens, const FeatureVector& features)
 	{
 		const Span& rcs = spans(0, m, 1).complete;
 		const Span& cs = spans(0, m, n-1).complete;
+		if(cs.type == Span::Undefined || rcs.type == Span::Undefined)
+			continue;
+		if(INVALID_SPAN(1,m) || INVALID_SPAN(m,n-1))
+			continue;
 		if(m == 1 || rcs.score + cs.score > score)
 		{
 			maxm = m;
@@ -1013,7 +1130,8 @@ void Token::printTree(int level) const
 		_children[i]->printTree(level+1);
 }
 
-void Tokens::add(const string& word, const string& lemma, const string& tag, const set<string>& tags, int parentIndex, const string& features)
+void Tokens::add(const string& word, const string& lemma, const string& tag, const set<string>& tags, int parentIndex, const string& features,
+		const string& namedEntityType)
 {
 	tokens.emplace_back();
 	Token& token = tokens.back();
@@ -1030,6 +1148,9 @@ void Tokens::add(const string& word, const string& lemma, const string& tag, con
 	token._tagID = idMap(token._tag);
 	token._fullTagID = idMap(token._fullTag);
 
+	token._namedEntityType = namedEntityType;
+
+	// TODO: translate and decode features, features->featuresString, features=std::map
 	token._features = features;
 
 	// TODO: more here
@@ -1047,6 +1168,7 @@ bool Tokens::add(const string& line, bool useGeneralTags)
 	int index, parentIndex = -1;
 	string word, lemma, tag, features;
 	set<string> tags;
+	string namedEntityType = "";
 
 	// try
 	// {
@@ -1068,8 +1190,17 @@ bool Tokens::add(const string& line, bool useGeneralTags)
 	if(part != end)
 	{
 		string pi = boost::copy_range<std::string>(*part++);
-		if(!pi.empty() && pi != "_")
-			parentIndex = stoi(pi);
+		// atkarībā no ner stāvokļa, šeit ir sagaidāms vai nu parent index, vai arī ner kategorija
+		if(ner)
+		{
+			if(!pi.empty() && pi != "_" && pi != "O")
+				namedEntityType = pi;
+		}
+		else
+		{
+			if(!pi.empty() && pi != "_")
+				parentIndex = stoi(pi);
+		}
 	}
 	// }
 	// catch(exception& e)
@@ -1103,7 +1234,7 @@ bool Tokens::add(const string& line, bool useGeneralTags)
 		}
 	}
 
-	add(word, lemma, tag, tags, parentIndex, features);
+	add(word, lemma, tag, tags, parentIndex, features, namedEntityType);
 
 	return true;
 }
