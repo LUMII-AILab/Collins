@@ -662,7 +662,7 @@ FeatureVector::Value scoreDegenCS(const FeatureVector& features, vector<Feature>
 
 
 
-void parse(Tokens& tokens, const FeatureVector& features)
+void parse(Tokens& tokens, const FeatureVector& features, bool ner)
 {
 	int n = tokens.size();
 
@@ -691,7 +691,7 @@ void parse(Tokens& tokens, const FeatureVector& features)
 
 	vector<TokenSpanInfo> tokenSpans(n, {0, TokenSpanNone});
 
-	if(true)
+	if(ner)
 	{
 		// izveido tokenu spanu nr. karti
 		int currentNr = 1;
@@ -1190,17 +1190,14 @@ bool Tokens::add(const string& line, bool useGeneralTags)
 	if(part != end)
 	{
 		string pi = boost::copy_range<std::string>(*part++);
-		// atkarībā no ner stāvokļa, šeit ir sagaidāms vai nu parent index, vai arī ner kategorija
-		if(ner)
-		{
-			if(!pi.empty() && pi != "_" && pi != "O")
-				namedEntityType = pi;
-		}
-		else
-		{
-			if(!pi.empty() && pi != "_")
-				parentIndex = stoi(pi);
-		}
+		if(!pi.empty() && pi != "_")
+			parentIndex = stoi(pi);
+	}
+	if(part != end)
+	{
+		namedEntityType = boost::copy_range<std::string>(*part++);
+		if(namedEntityType == "_" || namedEntityType == "O")
+			namedEntityType = "";
 	}
 	// }
 	// catch(exception& e)
@@ -1474,6 +1471,11 @@ void Tokens::output(std::ostream& stream) const
 		stream << token.features();		// features
 		stream << "\t";
 		stream << token.parentIndex();
+		stream << "\t";
+		if(token.namedEntityType().empty())
+			stream << "O";
+		else
+			stream << token.namedEntityType();
 		stream << endl;
 	}
 	stream << endl;

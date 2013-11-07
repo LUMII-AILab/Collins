@@ -173,8 +173,6 @@ public:
 
 	void output(std::ostream& stream) const;
 
-	bool ner;
-
 private:
 
 	IndexMap& idMap;
@@ -235,6 +233,6 @@ private:
 std::ostream& operator<<(std::ostream& stream, const Trees& trees);
 std::istream& operator>>(std::istream& stream, Trees& trees);
 
-void parse(Tokens& tokens, const FeatureVector& features);
+void parse(Tokens& tokens, const FeatureVector& features, bool ner = true);
 
 #endif // __COLLINS0_HPP__

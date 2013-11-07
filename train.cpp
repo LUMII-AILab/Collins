@@ -246,7 +246,7 @@ void TrainCase::train(FeatureVector& featureVector)
 			// parsēšanas mēģinājums
 			Timing timing;
 			timing.start();
-			parse(tree, featureVector);
+			parse(tree, featureVector, arguments.ner);
 			timing.stop();
 			double duration = timing;
 #endif
@@ -383,12 +383,12 @@ void TrainCase::check(const FeatureVector& featureVector)
 		
 #ifdef ANSI
 		// parsēšanas mēģinājums
-		double duration = parse(tree, featureVector);
+		double duration = parse(tree, featureVector, arguments.ner);
 #else
 		// double duration = parse(tree, featureVector, false);
 		Timing timing;
 		timing.start();
-		parse(tree, featureVector);
+		parse(tree, featureVector, arguments.ner);
 		timing.stop();
 		double duration = timing;
 #endif
@@ -873,7 +873,7 @@ bool train(TrainCase::Arguments& arguments, FeatureVector& featureVector, IndexM
 			// parsēšanas mēģinājums
 			Timing timing;
 			timing.start();
-			parse(tree, featureVector);
+			parse(tree, featureVector, arguments.ner);
 			timing.stop();
 			double duration = timing;
 
@@ -1028,7 +1028,7 @@ bool verify(TrainCase::Arguments& arguments, const FeatureVector& featureVector,
 				
 #ifdef ANSI
 				// parsēšanas mēģinājums
-				double duration = parse(tree, featureVector);
+				double duration = parse(tree, featureVector, arguments.ner);
 #else
 				// double duration = parse(tree, featureVector, false);
 				Timing timing;
@@ -1098,14 +1098,12 @@ bool parse(TrainCase::Arguments& arguments, const FeatureVector& featureVector, 
 
 			Tokens tree(idMap);
 
-			tree.ner = arguments.ner;
-
 			try
 			{
 				stream >> tree;
 
 				if(tree)
-					parse(tree, featureVector);
+					parse(tree, featureVector, arguments.ner);
 
 				ostream << tree;
 			}
