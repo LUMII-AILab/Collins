@@ -92,7 +92,10 @@ fs::path make_relative(fs::path from, fs::path to)
 			ret /= "..";
 	}
 	// Now navigate down the directory branch
-	ret.append(it_to, to.end());
+	// ret.append(it_to, to.end());	// won't work on latest clang+boost
+	// NOTE: workaround
+	for(; it_to!=to.end(); ++it_to)
+		ret /= *it_to;
 	return ret;
 }
 
